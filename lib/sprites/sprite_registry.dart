@@ -3,6 +3,7 @@ import 'package:hog_sim/hog_sim.dart';
 import '../lcd/lcd_sprite.dart';
 import 'adult_sprites.dart';
 import 'draft_face_sprites.dart';
+import 'draft_piglet_face_sprites.dart';
 import 'piglet_sprites.dart';
 import 'prop_sprites.dart';
 import 'shoat_sprites.dart';
@@ -10,6 +11,7 @@ import 'wallow_sprites.dart';
 
 export 'adult_sprites.dart';
 export 'draft_face_sprites.dart';
+export 'draft_piglet_face_sprites.dart';
 export 'piglet_sprites.dart';
 export 'prop_sprites.dart';
 export 'shoat_sprites.dart';
@@ -63,6 +65,7 @@ const _adults = 'lib/sprites/adult_sprites.dart';
 const _wallows = 'lib/sprites/wallow_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
 const _draft = 'lib/sprites/draft_face_sprites.dart';
+const _draftPiglet = 'lib/sprites/draft_piglet_face_sprites.dart';
 
 const Map<String, SpriteAnim> kSpriteRegistry = {
   'egg': SpriteAnim(kEgg1, kEgg2, dartName: 'kEgg', sourceFile: _props),
@@ -181,11 +184,7 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     sourceFile: _wallows,
   ),
 
-  'prop.poop': SpriteAnim.still(
-    kPoop,
-    dartName: 'kPoop',
-    sourceFile: _props,
-  ),
+  'prop.poop': SpriteAnim.still(kPoop, dartName: 'kPoop', sourceFile: _props),
   'prop.heart': SpriteAnim.still(
     kHeart,
     dartName: 'kHeart',
@@ -219,41 +218,78 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
 
   // Draft: the front-facing outlined direction. Not used by the game — these
   // exist so the gallery can show them beside the current cast.
-  'draft.idle': SpriteAnim(
+  'draft.adult.idle': SpriteAnim(
     kFaceIdle1,
     kFaceIdle2,
     dartName: 'kFaceIdle',
     sourceFile: _draft,
   ),
-  'draft.happy': SpriteAnim(
+  'draft.adult.happy': SpriteAnim(
     kFaceHappy1,
     kFaceHappy2,
     dartName: 'kFaceHappy',
     sourceFile: _draft,
   ),
-  'draft.sad': SpriteAnim(
+  'draft.adult.sad': SpriteAnim(
     kFaceSad1,
     kFaceSad2,
     dartName: 'kFaceSad',
     sourceFile: _draft,
   ),
-  'draft.eating': SpriteAnim(
+  'draft.adult.eating': SpriteAnim(
     kFaceEat1,
     kFaceEat2,
     dartName: 'kFaceEat',
     sourceFile: _draft,
   ),
-  'draft.sleeping': SpriteAnim(
+  'draft.adult.sleeping': SpriteAnim(
     kFaceSleep1,
     kFaceSleep2,
     dartName: 'kFaceSleep',
     sourceFile: _draft,
   ),
-  'draft.sick': SpriteAnim(
+  'draft.adult.sick': SpriteAnim(
     kFaceSick1,
     kFaceSick2,
     dartName: 'kFaceSick',
     sourceFile: _draft,
+  ),
+
+  'draft.piglet.idle': SpriteAnim(
+    kPigletFaceIdle1,
+    kPigletFaceIdle2,
+    dartName: 'kPigletFaceIdle',
+    sourceFile: _draftPiglet,
+  ),
+  'draft.piglet.happy': SpriteAnim(
+    kPigletFaceHappy1,
+    kPigletFaceHappy2,
+    dartName: 'kPigletFaceHappy',
+    sourceFile: _draftPiglet,
+  ),
+  'draft.piglet.sad': SpriteAnim(
+    kPigletFaceSad1,
+    kPigletFaceSad2,
+    dartName: 'kPigletFaceSad',
+    sourceFile: _draftPiglet,
+  ),
+  'draft.piglet.eating': SpriteAnim(
+    kPigletFaceEat1,
+    kPigletFaceEat2,
+    dartName: 'kPigletFaceEat',
+    sourceFile: _draftPiglet,
+  ),
+  'draft.piglet.sleeping': SpriteAnim(
+    kPigletFaceSleep1,
+    kPigletFaceSleep2,
+    dartName: 'kPigletFaceSleep',
+    sourceFile: _draftPiglet,
+  ),
+  'draft.piglet.sick': SpriteAnim(
+    kPigletFaceSick1,
+    kPigletFaceSick2,
+    dartName: 'kPigletFaceSick',
+    sourceFile: _draftPiglet,
   ),
 };
 

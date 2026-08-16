@@ -9,21 +9,10 @@ import '../lcd/lcd_sprite.dart';
 /// underneath.
 
 /// Poop. Static — a poop that animated would be doing too much.
-const kPoop = LcdSprite(4, 4, [
-  '  # ',
-  ' ###',
-  '####',
-  '####',
-]);
+const kPoop = LcdSprite(4, 4, ['  # ', ' ###', '####', '####']);
 
 /// Celebration, shown briefly after a good round of truffle hunt.
-const kHeart = LcdSprite(5, 5, [
-  ' # # ',
-  '#####',
-  '#####',
-  ' ### ',
-  '  #  ',
-]);
+const kHeart = LcdSprite(5, 5, [' # # ', '#####', '#####', ' ### ', '  #  ']);
 
 /// Sickness. A skull rather than a cross, because the pig is not in hospital —
 /// it is in trouble.
@@ -41,21 +30,11 @@ const kSickIcon = LcdSprite(7, 6, [
 ]);
 
 /// The attention indicator. Blinks above a pig whose need has bottomed out.
-const kCallIcon = LcdSprite(2, 5, [
-  '##',
-  '##',
-  '##',
-  '  ',
-  '##',
-]);
+const kCallIcon = LcdSprite(2, 5, ['##', '##', '##', '  ', '##']);
 
 /// The pen light, off. Drawn in a corner so the player can see the light is out
 /// even when the pig is asleep and barely visible.
-const kLightOffIcon = LcdSprite(3, 3, [
-  '#.#',
-  '.#.',
-  '#.#',
-]);
+const kLightOffIcon = LcdSprite(3, 3, ['#.#', '.#.', '#.#']);
 
 /// The grave. A cross is punched clean through the stone rather than drawn on
 /// it, matching how eyes are handled everywhere else.
