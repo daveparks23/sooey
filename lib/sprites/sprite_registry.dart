@@ -2,12 +2,14 @@ import 'package:hog_sim/hog_sim.dart';
 
 import '../lcd/lcd_sprite.dart';
 import 'adult_sprites.dart';
+import 'draft_face_sprites.dart';
 import 'piglet_sprites.dart';
 import 'prop_sprites.dart';
 import 'shoat_sprites.dart';
 import 'wallow_sprites.dart';
 
 export 'adult_sprites.dart';
+export 'draft_face_sprites.dart';
 export 'piglet_sprites.dart';
 export 'prop_sprites.dart';
 export 'shoat_sprites.dart';
@@ -60,6 +62,7 @@ const _shoats = 'lib/sprites/shoat_sprites.dart';
 const _adults = 'lib/sprites/adult_sprites.dart';
 const _wallows = 'lib/sprites/wallow_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
+const _draft = 'lib/sprites/draft_face_sprites.dart';
 
 const Map<String, SpriteAnim> kSpriteRegistry = {
   'egg': SpriteAnim(kEgg1, kEgg2, dartName: 'kEgg', sourceFile: _props),
@@ -212,6 +215,45 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     kSkull,
     dartName: 'kSkull',
     sourceFile: _props,
+  ),
+
+  // Draft: the front-facing outlined direction. Not used by the game — these
+  // exist so the gallery can show them beside the current cast.
+  'draft.idle': SpriteAnim(
+    kFaceIdle1,
+    kFaceIdle2,
+    dartName: 'kFaceIdle',
+    sourceFile: _draft,
+  ),
+  'draft.happy': SpriteAnim(
+    kFaceHappy1,
+    kFaceHappy2,
+    dartName: 'kFaceHappy',
+    sourceFile: _draft,
+  ),
+  'draft.sad': SpriteAnim(
+    kFaceSad1,
+    kFaceSad2,
+    dartName: 'kFaceSad',
+    sourceFile: _draft,
+  ),
+  'draft.eating': SpriteAnim(
+    kFaceEat1,
+    kFaceEat2,
+    dartName: 'kFaceEat',
+    sourceFile: _draft,
+  ),
+  'draft.sleeping': SpriteAnim(
+    kFaceSleep1,
+    kFaceSleep2,
+    dartName: 'kFaceSleep',
+    sourceFile: _draft,
+  ),
+  'draft.sick': SpriteAnim(
+    kFaceSick1,
+    kFaceSick2,
+    dartName: 'kFaceSick',
+    sourceFile: _draft,
   ),
 };
 
