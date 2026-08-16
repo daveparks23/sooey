@@ -355,6 +355,18 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     dartName: 'kRuntFaceSick',
     sourceFile: _draftForms,
   ),
+  'draft.prizeHog.wallowing': SpriteAnim(
+    kPrizeFaceWallow1,
+    kPrizeFaceWallow2,
+    dartName: 'kPrizeFaceWallow',
+    sourceFile: _draftExtra,
+  ),
+  'draft.runt.wallowing': SpriteAnim(
+    kRuntFaceWallow1,
+    kRuntFaceWallow2,
+    dartName: 'kRuntFaceWallow',
+    sourceFile: _draftExtra,
+  ),
 };
 
 /// The creature animation for a given stage, form and pose.
