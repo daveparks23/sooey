@@ -1,23 +1,17 @@
 import 'package:hog_sim/hog_sim.dart';
 
 import '../lcd/lcd_sprite.dart';
-import 'adult_sprites.dart';
-import 'draft_adult_form_sprites.dart';
-import 'draft_extra_sprites.dart';
-import 'draft_face_sprites.dart';
-import 'draft_piglet_face_sprites.dart';
-import 'piglet_sprites.dart';
+import 'adult_face_sprites.dart';
+import 'adult_form_sprites.dart';
+import 'piglet_face_sprites.dart';
 import 'prop_sprites.dart';
-import 'wallow_sprites.dart';
+import 'wallow_face_sprites.dart';
 
-export 'adult_sprites.dart';
-export 'draft_adult_form_sprites.dart';
-export 'draft_extra_sprites.dart';
-export 'draft_face_sprites.dart';
-export 'draft_piglet_face_sprites.dart';
-export 'piglet_sprites.dart';
+export 'adult_face_sprites.dart';
+export 'adult_form_sprites.dart';
+export 'piglet_face_sprites.dart';
 export 'prop_sprites.dart';
-export 'wallow_sprites.dart';
+export 'wallow_face_sprites.dart';
 
 /// How long each frame of a two-frame animation holds.
 ///
@@ -39,8 +33,8 @@ class SpriteAnim {
   final LcdSprite a;
   final LcdSprite b;
 
-  /// Base name of the Dart constants behind this animation — `kRuntEat` for
-  /// `kRuntEat1` and `kRuntEat2`.
+  /// Base name of the Dart constants behind this animation — `kRuntFaceEat` for
+  /// `kRuntFaceEat1` and `kRuntFaceEat2`.
   ///
   /// Exists so the sprite editor can emit code you can paste straight over the
   /// existing literal. Naming the constant after the registry key instead would
@@ -56,112 +50,204 @@ class SpriteAnim {
   bool get isStill => identical(a, b);
 }
 
-/// What the pig is visibly doing, as opposed to what its stats say.
+/// What the pig is visibly *doing*.
 enum PetPose { idle, eating, sleeping, wallowing }
 
-/// Every animation in the game, by name. Powers the sprite editor's load menu
-/// and the test that validates the whole cast.
-const _piglets = 'lib/sprites/piglet_sprites.dart';
-const _adults = 'lib/sprites/adult_sprites.dart';
-const _wallows = 'lib/sprites/wallow_sprites.dart';
-const _props = 'lib/sprites/prop_sprites.dart';
-const _draft = 'lib/sprites/draft_face_sprites.dart';
-const _draftExtra = 'lib/sprites/draft_extra_sprites.dart';
-const _draftForms = 'lib/sprites/draft_adult_form_sprites.dart';
-const _draftPiglet = 'lib/sprites/draft_piglet_face_sprites.dart';
+/// How the pig visibly *feels*.
+///
+/// A separate axis from pose, because these answer different questions and
+/// change on different timescales — a pig can be ill while eating, or content
+/// while wallowing.
+enum PetMood { content, happy, sad, sick }
 
+const _piglet = 'lib/sprites/piglet_face_sprites.dart';
+const _adult = 'lib/sprites/adult_face_sprites.dart';
+const _forms = 'lib/sprites/adult_form_sprites.dart';
+const _wallows = 'lib/sprites/wallow_face_sprites.dart';
+const _props = 'lib/sprites/prop_sprites.dart';
+
+/// Every animation in the game, by name. Powers the sprite editor's load menu
+/// and the tests that validate the whole cast.
 const Map<String, SpriteAnim> kSpriteRegistry = {
   'egg': SpriteAnim(kEgg1, kEgg2, dartName: 'kEgg', sourceFile: _props),
 
+  // --- Piglet ---------------------------------------------------------------
   'piglet.idle': SpriteAnim(
-    kPigletIdle1,
-    kPigletIdle2,
-    dartName: 'kPigletIdle',
-    sourceFile: _piglets,
+    kPigletFaceIdle1,
+    kPigletFaceIdle2,
+    dartName: 'kPigletFaceIdle',
+    sourceFile: _piglet,
+  ),
+  'piglet.happy': SpriteAnim(
+    kPigletFaceHappy1,
+    kPigletFaceHappy2,
+    dartName: 'kPigletFaceHappy',
+    sourceFile: _piglet,
+  ),
+  'piglet.sad': SpriteAnim(
+    kPigletFaceSad1,
+    kPigletFaceSad2,
+    dartName: 'kPigletFaceSad',
+    sourceFile: _piglet,
+  ),
+  'piglet.sick': SpriteAnim(
+    kPigletFaceSick1,
+    kPigletFaceSick2,
+    dartName: 'kPigletFaceSick',
+    sourceFile: _piglet,
   ),
   'piglet.eating': SpriteAnim(
-    kPigletEat1,
-    kPigletEat2,
-    dartName: 'kPigletEat',
-    sourceFile: _piglets,
+    kPigletFaceEat1,
+    kPigletFaceEat2,
+    dartName: 'kPigletFaceEat',
+    sourceFile: _piglet,
   ),
   'piglet.sleeping': SpriteAnim(
-    kPigletSleep1,
-    kPigletSleep2,
-    dartName: 'kPigletSleep',
-    sourceFile: _piglets,
+    kPigletFaceSleep1,
+    kPigletFaceSleep2,
+    dartName: 'kPigletFaceSleep',
+    sourceFile: _piglet,
   ),
   'piglet.wallowing': SpriteAnim(
-    kPigletWallow1,
-    kPigletWallow2,
-    dartName: 'kPigletWallow',
+    kPigletFaceWallow1,
+    kPigletFaceWallow2,
+    dartName: 'kPigletFaceWallow',
     sourceFile: _wallows,
   ),
 
+  // --- Farm hog: the reference adult build ----------------------------------
   'farmHog.idle': SpriteAnim(
-    kFarmHogIdle1,
-    kFarmHogIdle2,
-    dartName: 'kFarmHogIdle',
-    sourceFile: _adults,
+    kFaceIdle1,
+    kFaceIdle2,
+    dartName: 'kFaceIdle',
+    sourceFile: _adult,
+  ),
+  'farmHog.happy': SpriteAnim(
+    kFaceHappy1,
+    kFaceHappy2,
+    dartName: 'kFaceHappy',
+    sourceFile: _adult,
+  ),
+  'farmHog.sad': SpriteAnim(
+    kFaceSad1,
+    kFaceSad2,
+    dartName: 'kFaceSad',
+    sourceFile: _adult,
+  ),
+  'farmHog.sick': SpriteAnim(
+    kFaceSick1,
+    kFaceSick2,
+    dartName: 'kFaceSick',
+    sourceFile: _adult,
   ),
   'farmHog.eating': SpriteAnim(
-    kFarmHogEat1,
-    kFarmHogEat2,
-    dartName: 'kFarmHogEat',
-    sourceFile: _adults,
+    kFaceEat1,
+    kFaceEat2,
+    dartName: 'kFaceEat',
+    sourceFile: _adult,
   ),
   'farmHog.sleeping': SpriteAnim(
-    kFarmHogSleep1,
-    kFarmHogSleep2,
-    dartName: 'kFarmHogSleep',
-    sourceFile: _adults,
+    kFaceSleep1,
+    kFaceSleep2,
+    dartName: 'kFaceSleep',
+    sourceFile: _adult,
   ),
-
-  'prizeHog.idle': SpriteAnim(
-    kPrizeHogIdle1,
-    kPrizeHogIdle2,
-    dartName: 'kPrizeHogIdle',
-    sourceFile: _adults,
-  ),
-  'prizeHog.eating': SpriteAnim(
-    kPrizeHogEat1,
-    kPrizeHogEat2,
-    dartName: 'kPrizeHogEat',
-    sourceFile: _adults,
-  ),
-  'prizeHog.sleeping': SpriteAnim(
-    kPrizeHogSleep1,
-    kPrizeHogSleep2,
-    dartName: 'kPrizeHogSleep',
-    sourceFile: _adults,
-  ),
-
-  'runt.idle': SpriteAnim(
-    kRuntIdle1,
-    kRuntIdle2,
-    dartName: 'kRuntIdle',
-    sourceFile: _adults,
-  ),
-  'runt.eating': SpriteAnim(
-    kRuntEat1,
-    kRuntEat2,
-    dartName: 'kRuntEat',
-    sourceFile: _adults,
-  ),
-  'runt.sleeping': SpriteAnim(
-    kRuntSleep1,
-    kRuntSleep2,
-    dartName: 'kRuntSleep',
-    sourceFile: _adults,
-  ),
-
-  'adult.wallowing': SpriteAnim(
-    kAdultWallow1,
-    kAdultWallow2,
-    dartName: 'kAdultWallow',
+  'farmHog.wallowing': SpriteAnim(
+    kAdultFaceWallow1,
+    kAdultFaceWallow2,
+    dartName: 'kAdultFaceWallow',
     sourceFile: _wallows,
   ),
 
+  // --- Prize hog ------------------------------------------------------------
+  'prizeHog.idle': SpriteAnim(
+    kPrizeFaceIdle1,
+    kPrizeFaceIdle2,
+    dartName: 'kPrizeFaceIdle',
+    sourceFile: _forms,
+  ),
+  'prizeHog.happy': SpriteAnim(
+    kPrizeFaceHappy1,
+    kPrizeFaceHappy2,
+    dartName: 'kPrizeFaceHappy',
+    sourceFile: _forms,
+  ),
+  'prizeHog.sad': SpriteAnim(
+    kPrizeFaceSad1,
+    kPrizeFaceSad2,
+    dartName: 'kPrizeFaceSad',
+    sourceFile: _forms,
+  ),
+  'prizeHog.sick': SpriteAnim(
+    kPrizeFaceSick1,
+    kPrizeFaceSick2,
+    dartName: 'kPrizeFaceSick',
+    sourceFile: _forms,
+  ),
+  'prizeHog.eating': SpriteAnim(
+    kPrizeFaceEat1,
+    kPrizeFaceEat2,
+    dartName: 'kPrizeFaceEat',
+    sourceFile: _forms,
+  ),
+  'prizeHog.sleeping': SpriteAnim(
+    kPrizeFaceSleep1,
+    kPrizeFaceSleep2,
+    dartName: 'kPrizeFaceSleep',
+    sourceFile: _forms,
+  ),
+  'prizeHog.wallowing': SpriteAnim(
+    kPrizeFaceWallow1,
+    kPrizeFaceWallow2,
+    dartName: 'kPrizeFaceWallow',
+    sourceFile: _wallows,
+  ),
+
+  // --- Runt -----------------------------------------------------------------
+  'runt.idle': SpriteAnim(
+    kRuntFaceIdle1,
+    kRuntFaceIdle2,
+    dartName: 'kRuntFaceIdle',
+    sourceFile: _forms,
+  ),
+  'runt.happy': SpriteAnim(
+    kRuntFaceHappy1,
+    kRuntFaceHappy2,
+    dartName: 'kRuntFaceHappy',
+    sourceFile: _forms,
+  ),
+  'runt.sad': SpriteAnim(
+    kRuntFaceSad1,
+    kRuntFaceSad2,
+    dartName: 'kRuntFaceSad',
+    sourceFile: _forms,
+  ),
+  'runt.sick': SpriteAnim(
+    kRuntFaceSick1,
+    kRuntFaceSick2,
+    dartName: 'kRuntFaceSick',
+    sourceFile: _forms,
+  ),
+  'runt.eating': SpriteAnim(
+    kRuntFaceEat1,
+    kRuntFaceEat2,
+    dartName: 'kRuntFaceEat',
+    sourceFile: _forms,
+  ),
+  'runt.sleeping': SpriteAnim(
+    kRuntFaceSleep1,
+    kRuntFaceSleep2,
+    dartName: 'kRuntFaceSleep',
+    sourceFile: _forms,
+  ),
+  'runt.wallowing': SpriteAnim(
+    kRuntFaceWallow1,
+    kRuntFaceWallow2,
+    dartName: 'kRuntFaceWallow',
+    sourceFile: _wallows,
+  ),
+
+  // --- Props ----------------------------------------------------------------
   'prop.poop': SpriteAnim.still(kPoop, dartName: 'kPoop', sourceFile: _props),
   'prop.heart': SpriteAnim.still(
     kHeart,
@@ -193,216 +279,59 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     dartName: 'kSkull',
     sourceFile: _props,
   ),
-
-  // Draft: the front-facing outlined direction. Not used by the game — these
-  // exist so the gallery can show them beside the current cast.
-  'draft.adult.idle': SpriteAnim(
-    kFaceIdle1,
-    kFaceIdle2,
-    dartName: 'kFaceIdle',
-    sourceFile: _draft,
-  ),
-  'draft.adult.happy': SpriteAnim(
-    kFaceHappy1,
-    kFaceHappy2,
-    dartName: 'kFaceHappy',
-    sourceFile: _draft,
-  ),
-  'draft.adult.sad': SpriteAnim(
-    kFaceSad1,
-    kFaceSad2,
-    dartName: 'kFaceSad',
-    sourceFile: _draft,
-  ),
-  'draft.adult.eating': SpriteAnim(
-    kFaceEat1,
-    kFaceEat2,
-    dartName: 'kFaceEat',
-    sourceFile: _draft,
-  ),
-  'draft.adult.sleeping': SpriteAnim(
-    kFaceSleep1,
-    kFaceSleep2,
-    dartName: 'kFaceSleep',
-    sourceFile: _draft,
-  ),
-  'draft.adult.sick': SpriteAnim(
-    kFaceSick1,
-    kFaceSick2,
-    dartName: 'kFaceSick',
-    sourceFile: _draft,
-  ),
-
-  'draft.piglet.idle': SpriteAnim(
-    kPigletFaceIdle1,
-    kPigletFaceIdle2,
-    dartName: 'kPigletFaceIdle',
-    sourceFile: _draftPiglet,
-  ),
-  'draft.piglet.happy': SpriteAnim(
-    kPigletFaceHappy1,
-    kPigletFaceHappy2,
-    dartName: 'kPigletFaceHappy',
-    sourceFile: _draftPiglet,
-  ),
-  'draft.piglet.sad': SpriteAnim(
-    kPigletFaceSad1,
-    kPigletFaceSad2,
-    dartName: 'kPigletFaceSad',
-    sourceFile: _draftPiglet,
-  ),
-  'draft.piglet.eating': SpriteAnim(
-    kPigletFaceEat1,
-    kPigletFaceEat2,
-    dartName: 'kPigletFaceEat',
-    sourceFile: _draftPiglet,
-  ),
-  'draft.piglet.sleeping': SpriteAnim(
-    kPigletFaceSleep1,
-    kPigletFaceSleep2,
-    dartName: 'kPigletFaceSleep',
-    sourceFile: _draftPiglet,
-  ),
-  'draft.piglet.sick': SpriteAnim(
-    kPigletFaceSick1,
-    kPigletFaceSick2,
-    dartName: 'kPigletFaceSick',
-    sourceFile: _draftPiglet,
-  ),
-
-  'draft.adult.wallowing': SpriteAnim(
-    kAdultFaceWallow1,
-    kAdultFaceWallow2,
-    dartName: 'kAdultFaceWallow',
-    sourceFile: _draftExtra,
-  ),
-  'draft.piglet.wallowing': SpriteAnim(
-    kPigletFaceWallow1,
-    kPigletFaceWallow2,
-    dartName: 'kPigletFaceWallow',
-    sourceFile: _draftExtra,
-  ),
-
-  'draft.prizeHog.idle': SpriteAnim(
-    kPrizeFaceIdle1,
-    kPrizeFaceIdle2,
-    dartName: 'kPrizeFaceIdle',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.happy': SpriteAnim(
-    kPrizeFaceHappy1,
-    kPrizeFaceHappy2,
-    dartName: 'kPrizeFaceHappy',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.sad': SpriteAnim(
-    kPrizeFaceSad1,
-    kPrizeFaceSad2,
-    dartName: 'kPrizeFaceSad',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.eating': SpriteAnim(
-    kPrizeFaceEat1,
-    kPrizeFaceEat2,
-    dartName: 'kPrizeFaceEat',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.sleeping': SpriteAnim(
-    kPrizeFaceSleep1,
-    kPrizeFaceSleep2,
-    dartName: 'kPrizeFaceSleep',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.sick': SpriteAnim(
-    kPrizeFaceSick1,
-    kPrizeFaceSick2,
-    dartName: 'kPrizeFaceSick',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.idle': SpriteAnim(
-    kRuntFaceIdle1,
-    kRuntFaceIdle2,
-    dartName: 'kRuntFaceIdle',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.happy': SpriteAnim(
-    kRuntFaceHappy1,
-    kRuntFaceHappy2,
-    dartName: 'kRuntFaceHappy',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.sad': SpriteAnim(
-    kRuntFaceSad1,
-    kRuntFaceSad2,
-    dartName: 'kRuntFaceSad',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.eating': SpriteAnim(
-    kRuntFaceEat1,
-    kRuntFaceEat2,
-    dartName: 'kRuntFaceEat',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.sleeping': SpriteAnim(
-    kRuntFaceSleep1,
-    kRuntFaceSleep2,
-    dartName: 'kRuntFaceSleep',
-    sourceFile: _draftForms,
-  ),
-  'draft.runt.sick': SpriteAnim(
-    kRuntFaceSick1,
-    kRuntFaceSick2,
-    dartName: 'kRuntFaceSick',
-    sourceFile: _draftForms,
-  ),
-  'draft.prizeHog.wallowing': SpriteAnim(
-    kPrizeFaceWallow1,
-    kPrizeFaceWallow2,
-    dartName: 'kPrizeFaceWallow',
-    sourceFile: _draftExtra,
-  ),
-  'draft.runt.wallowing': SpriteAnim(
-    kRuntFaceWallow1,
-    kRuntFaceWallow2,
-    dartName: 'kRuntFaceWallow',
-    sourceFile: _draftExtra,
-  ),
 };
 
-/// The creature animation for a given stage, form and pose.
+/// Every pose a creature build is required to provide.
+const List<String> kRequiredPoses = [
+  'idle',
+  'happy',
+  'sad',
+  'sick',
+  'eating',
+  'sleeping',
+  'wallowing',
+];
+
+/// Every creature build in the game.
+const List<String> kBuildKeys = ['piglet', 'farmHog', 'prizeHog', 'runt'];
+
+/// The registry key for a creature's build — the thing that owns a face.
 ///
-/// The three adult forms share one wallowing pose: below the mud line there is
-/// nothing left to tell them apart.
+/// `base` should never reach adulthood, since the form is fixed at the
+/// piglet→adult transition, but a pet seeded mid-development might, so it falls
+/// back to the reference build rather than crashing.
+String buildKey({required Stage stage, required Form form}) => switch (stage) {
+  Stage.egg => 'egg',
+  Stage.piglet => 'piglet',
+  Stage.adult => form == Form.base ? 'farmHog' : form.name,
+};
+
+/// The animation for a creature in a given pose and mood.
+///
+/// Mood only reaches the screen through the idle pose. The other three have
+/// their eyes spoken for already — sleeping shuts them, eating squeezes them,
+/// wallowing buries everything below the chin — so a "happy sleeping" pig would
+/// mean drawing crescents on a face whose eyes are closed.
 SpriteAnim creatureAnim({
   required Stage stage,
   required Form form,
   required PetPose pose,
+  PetMood mood = PetMood.content,
 }) {
   if (stage == Stage.egg) return kSpriteRegistry['egg']!;
 
-  if (pose == PetPose.wallowing) {
-    final key = switch (stage) {
-      Stage.piglet => 'piglet.wallowing',
-      _ => 'adult.wallowing',
-    };
-    return kSpriteRegistry[key]!;
-  }
-
-  final who = switch (stage) {
-    Stage.piglet => 'piglet',
-    // `base` should never reach adulthood — the form is fixed at the
-    // piglet->adult transition — but a pet seeded mid-development might, so
-    // fall back to the reference build rather than crashing.
-    Stage.adult => form == Form.base ? 'farmHog' : form.name,
-    Stage.egg => 'egg',
-  };
-
-  final poseName = switch (pose) {
-    PetPose.idle => 'idle',
+  final who = buildKey(stage: stage, form: form);
+  final what = switch (pose) {
     PetPose.eating => 'eating',
     PetPose.sleeping => 'sleeping',
-    PetPose.wallowing => 'idle',
+    PetPose.wallowing => 'wallowing',
+    PetPose.idle => switch (mood) {
+      PetMood.content => 'idle',
+      PetMood.happy => 'happy',
+      PetMood.sad => 'sad',
+      PetMood.sick => 'sick',
+    },
   };
 
-  return kSpriteRegistry['$who.$poseName'] ?? kSpriteRegistry['$who.idle']!;
+  return kSpriteRegistry['$who.$what'] ?? kSpriteRegistry['$who.idle']!;
 }

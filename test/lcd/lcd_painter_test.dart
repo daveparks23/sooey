@@ -82,7 +82,7 @@ void main() {
           Directionality(
             textDirection: TextDirection.ltr,
             child: LcdScreen(
-              buffer: LcdBuffer()..blit(kFarmHogIdle1, 0, 0),
+              buffer: LcdBuffer()..blit(kFaceIdle1, 0, 0),
               frame: 0,
             ),
           ),

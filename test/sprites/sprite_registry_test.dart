@@ -75,10 +75,10 @@ void main() {
     });
 
     test('alternate on the frame counter', () {
-      const anim = SpriteAnim(kPigletIdle1, kPigletIdle2);
-      expect(identical(anim.frame(0), kPigletIdle1), isTrue);
-      expect(identical(anim.frame(1), kPigletIdle2), isTrue);
-      expect(identical(anim.frame(2), kPigletIdle1), isTrue);
+      const anim = SpriteAnim(kPigletFaceIdle1, kPigletFaceIdle2);
+      expect(identical(anim.frame(0), kPigletFaceIdle1), isTrue);
+      expect(identical(anim.frame(1), kPigletFaceIdle2), isTrue);
+      expect(identical(anim.frame(2), kPigletFaceIdle1), isTrue);
     });
   });
 
@@ -151,14 +151,14 @@ void main() {
       expect(adult, greaterThan(piglet), reason: 'adult should outgrow piglet');
     });
 
-    test('each draft build wallows in its own silhouette', () {
+    test('each build wallows in its own silhouette', () {
       // The mud stops at the chin, so the head — the only place the build is
       // expressed — stays in full view. Sharing one wallow would make a prize
       // hog and a runt identical at exactly the moment the player is watching
       // most closely.
       final wallows = {
-        for (final build in ['adult', 'prizeHog', 'runt', 'piglet'])
-          build: kSpriteRegistry['draft.$build.wallowing']!.a.rows.join(),
+        for (final build in kBuildKeys)
+          build: kSpriteRegistry['$build.wallowing']!.a.rows.join(),
       };
       expect(
         wallows.values.toSet().length,
@@ -167,34 +167,16 @@ void main() {
       );
     });
 
-    test('every draft build covers every pose', () {
-      const poses = [
-        'idle',
-        'happy',
-        'sad',
-        'eating',
-        'sleeping',
-        'sick',
-        'wallowing',
-      ];
-      for (final build in ['piglet', 'adult', 'prizeHog', 'runt']) {
-        for (final pose in poses) {
+    test('every build covers every pose', () {
+      for (final build in kBuildKeys) {
+        for (final pose in kRequiredPoses) {
           expect(
-            kSpriteRegistry.containsKey('draft.$build.$pose'),
+            kSpriteRegistry.containsKey('$build.$pose'),
             isTrue,
-            reason: 'draft.$build.$pose is missing',
+            reason: '$build.$pose is missing',
           );
         }
       }
-    });
-
-    test('all three adult forms share the wallow', () {
-      final poses = [
-        for (final form in [Form.prizeHog, Form.farmHog, Form.runt])
-          creatureAnim(stage: Stage.adult, form: form, pose: PetPose.wallowing),
-      ];
-      expect(identical(poses[0], poses[1]), isTrue);
-      expect(identical(poses[1], poses[2]), isTrue);
     });
   });
 }

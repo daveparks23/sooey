@@ -123,16 +123,16 @@ void main() {
     });
   });
 
-  group('the starter sprites from the spec', () {
-    test('are the full screen size', () {
-      expect(kFarmHogIdle1.width, 32);
-      expect(kFarmHogIdle1.height, 16);
-      expect(kPigletIdle1.width, 32);
-      expect(kPigletIdle1.height, 16);
+  group('the cast', () {
+    test('creature sprites are the full screen size', () {
+      expect(kFaceIdle1.width, 32);
+      expect(kFaceIdle1.height, 16);
+      expect(kPigletFaceIdle1.width, 32);
+      expect(kPigletFaceIdle1.height, 16);
     });
 
     test('actually draw something', () {
-      final b = LcdBuffer()..blit(kFarmHogIdle1, 0, 0);
+      final b = LcdBuffer()..blit(kFaceIdle1, 0, 0);
       expect(b.toAscii().contains('#'), isTrue);
     });
   });

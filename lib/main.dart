@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'dev/pet_preview_page.dart';
 import 'dev/sprite_editor_page.dart';
 import 'dev/sprite_gallery_page.dart';
 
@@ -29,6 +30,7 @@ class HogPocketApp extends StatelessWidget {
       ),
       routes: {
         '/': (_) => const DevMenuPage(),
+        '/dev/preview': (_) => const PetPreviewPage(),
         '/dev/sprites': (_) => const SpriteGalleryPage(),
         '/dev/editor': (_) => const SpriteEditorPage(),
       },
@@ -53,6 +55,11 @@ class DevMenuPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
+              onPressed: () => Navigator.pushNamed(context, '/dev/preview'),
+              child: const Text('Pet preview'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
               onPressed: () => Navigator.pushNamed(context, '/dev/sprites'),
               child: const Text('Sprite gallery'),
             ),
