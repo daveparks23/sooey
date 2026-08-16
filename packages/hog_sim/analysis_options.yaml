@@ -1,0 +1,11 @@
+include: package:lints/recommended.yaml
+
+# This package is compiled to JS by dart2js and must behave identically on the
+# Dart VM. Two consequences worth remembering while editing:
+#   * ints are 64-bit on the VM but IEEE-754 doubles under dart2js. Mask every
+#     integer operation in rng.dart with & 0xFFFFFFFF.
+#   * String.hashCode is not stable across runtimes. Use stableHash() instead.
+analyzer:
+  language:
+    strict-casts: true
+    strict-raw-types: true
