@@ -29,5 +29,10 @@ module.exports = {
     "quotes": ["error", "double"],
     "import/no-unresolved": 0,
     "indent": ["error", 2],
+    // eslint-config-google predates TypeScript: it wants @param/@return tags
+    // restating what the type signature already says. Prose comments explaining
+    // *why* are still expected — these rules just stop demanding boilerplate.
+    "require-jsdoc": 0,
+    "valid-jsdoc": 0,
   },
 };

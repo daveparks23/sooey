@@ -511,7 +511,9 @@ Map<String, Object?> buildGoldenVectors() => {
         'input': c.input.toJson(),
         'action': c.action.name,
         'nowMillis': c.nowMillis,
-        'expected': _outcomeJson(applyAction(c.input, c.action, c.nowMillis)),
+        'expected': actionOutcomeToJson(
+          applyAction(c.input, c.action, c.nowMillis),
+        ),
       },
   ],
   'minigame': [
@@ -522,7 +524,7 @@ Map<String, Object?> buildGoldenVectors() => {
         'wins': c.wins,
         'rounds': c.rounds,
         'nowMillis': c.nowMillis,
-        'expected': _outcomeJson(
+        'expected': actionOutcomeToJson(
           applyMinigame(
             c.input,
             wins: c.wins,
@@ -532,10 +534,4 @@ Map<String, Object?> buildGoldenVectors() => {
         ),
       },
   ],
-};
-
-Map<String, Object?> _outcomeJson(ActionOutcome o) => {
-  'accepted': o.accepted,
-  'refusal': o.refusal?.name,
-  'state': o.state.toJson(),
 };

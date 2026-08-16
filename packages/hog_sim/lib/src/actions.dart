@@ -127,6 +127,14 @@ ActionOutcome applyMinigame(
   );
 }
 
+/// Wire format for an action result. Shared by the golden vectors and the JS
+/// bridge so the two cannot describe the same outcome differently.
+Map<String, Object?> actionOutcomeToJson(ActionOutcome o) => {
+  'accepted': o.accepted,
+  'refusal': o.refusal?.name,
+  'state': o.state.toJson(),
+};
+
 double _clamp(double v, double lo, double hi) {
   if (v < lo) return lo;
   if (v > hi) return hi;
