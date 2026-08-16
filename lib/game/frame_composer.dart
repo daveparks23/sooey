@@ -9,6 +9,10 @@ import 'pet_appearance.dart';
 /// Two either side of the pig, clear of its feet. Fixed slots rather than
 /// scattered positions: a poop that moved between frames would read as an
 /// animal rather than a mess.
+///
+/// There must be at least [kMaxPoops] of these. With fewer, a full pen would
+/// silently render as a tidier one — the player would clean what they could
+/// see and stay ill for reasons nothing on screen explained.
 const List<(int, int)> kPoopSlots = [(1, 12), (6, 12), (22, 12), (27, 12)];
 
 /// Status icons live in the corners, outside the head's column range (x7–x23),

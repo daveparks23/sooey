@@ -149,11 +149,14 @@ class _PetPreviewPageState extends State<PetPreviewPage> {
             divisions: 20,
             onChanged: (v) => setState(() => _lowestNeed = v),
           ),
-          _label('Poops on the floor — $_poops'),
+          // Bounded by the simulation, not by taste: `advance` caps a pen at
+          // kMaxPoops, so offering more here would preview a state the game
+          // can never produce.
+          _label('Poops on the floor — $_poops of $kMaxPoops'),
           Slider(
             value: _poops.toDouble(),
-            max: 6,
-            divisions: 6,
+            max: kMaxPoops.toDouble(),
+            divisions: kMaxPoops,
             onChanged: (v) => setState(() => _poops = v.round()),
           ),
           const SizedBox(height: 8),

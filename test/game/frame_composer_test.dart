@@ -123,6 +123,25 @@ void main() {
       }
     });
 
+    test('the floor has a slot for every poop the simulation allows', () {
+      // A shortfall here would hide mess the player is being judged on.
+      expect(kPoopSlots.length, greaterThanOrEqualTo(kMaxPoops));
+    });
+
+    test('a full pen draws every poop it holds', () {
+      final full = composeFrame(
+        pet(poops: List.generate(kMaxPoops, (i) => i)),
+        frame: 0,
+        nowMillis: refNoon,
+      );
+      final empty = composeFrame(pet(), frame: 0, nowMillis: refNoon);
+      final poopDots = kSpriteRegistry['prop.poop']!.a.rows.fold<int>(
+        0,
+        (n, r) => n + r.split('#').length - 1,
+      );
+      expect(litDots(full) - litDots(empty), poopDots * kMaxPoops);
+    });
+
     test('more poops than slots does not overflow the display', () {
       final b = composeFrame(
         pet(poops: List.generate(20, (i) => i)),
