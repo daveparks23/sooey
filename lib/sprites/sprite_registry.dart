@@ -6,7 +6,6 @@ import 'draft_face_sprites.dart';
 import 'draft_piglet_face_sprites.dart';
 import 'piglet_sprites.dart';
 import 'prop_sprites.dart';
-import 'shoat_sprites.dart';
 import 'wallow_sprites.dart';
 
 export 'adult_sprites.dart';
@@ -14,7 +13,6 @@ export 'draft_face_sprites.dart';
 export 'draft_piglet_face_sprites.dart';
 export 'piglet_sprites.dart';
 export 'prop_sprites.dart';
-export 'shoat_sprites.dart';
 export 'wallow_sprites.dart';
 
 /// How long each frame of a two-frame animation holds.
@@ -37,12 +35,12 @@ class SpriteAnim {
   final LcdSprite a;
   final LcdSprite b;
 
-  /// Base name of the Dart constants behind this animation — `kShoatEat` for
-  /// `kShoatEat1` and `kShoatEat2`.
+  /// Base name of the Dart constants behind this animation — `kRuntEat` for
+  /// `kRuntEat1` and `kRuntEat2`.
   ///
   /// Exists so the sprite editor can emit code you can paste straight over the
   /// existing literal. Naming the constant after the registry key instead would
-  /// produce `shoat.eating1`, which is not a valid identifier.
+  /// produce `runt.eating1`, which is not a valid identifier.
   final String? dartName;
 
   /// Where those constants live, so the editor can tell you where to paste.
@@ -60,7 +58,6 @@ enum PetPose { idle, eating, sleeping, wallowing }
 /// Every animation in the game, by name. Powers the sprite editor's load menu
 /// and the test that validates the whole cast.
 const _piglets = 'lib/sprites/piglet_sprites.dart';
-const _shoats = 'lib/sprites/shoat_sprites.dart';
 const _adults = 'lib/sprites/adult_sprites.dart';
 const _wallows = 'lib/sprites/wallow_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
@@ -92,31 +89,6 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     kPigletWallow1,
     kPigletWallow2,
     dartName: 'kPigletWallow',
-    sourceFile: _wallows,
-  ),
-
-  'shoat.idle': SpriteAnim(
-    kShoatIdle1,
-    kShoatIdle2,
-    dartName: 'kShoatIdle',
-    sourceFile: _shoats,
-  ),
-  'shoat.eating': SpriteAnim(
-    kShoatEat1,
-    kShoatEat2,
-    dartName: 'kShoatEat',
-    sourceFile: _shoats,
-  ),
-  'shoat.sleeping': SpriteAnim(
-    kShoatSleep1,
-    kShoatSleep2,
-    dartName: 'kShoatSleep',
-    sourceFile: _shoats,
-  ),
-  'shoat.wallowing': SpriteAnim(
-    kShoatWallow1,
-    kShoatWallow2,
-    dartName: 'kShoatWallow',
     sourceFile: _wallows,
   ),
 
@@ -307,7 +279,6 @@ SpriteAnim creatureAnim({
   if (pose == PetPose.wallowing) {
     final key = switch (stage) {
       Stage.piglet => 'piglet.wallowing',
-      Stage.shoat => 'shoat.wallowing',
       _ => 'adult.wallowing',
     };
     return kSpriteRegistry[key]!;
@@ -315,10 +286,9 @@ SpriteAnim creatureAnim({
 
   final who = switch (stage) {
     Stage.piglet => 'piglet',
-    Stage.shoat => 'shoat',
     // `base` should never reach adulthood — the form is fixed at the
-    // shoat->adult transition — but a pet seeded mid-development might, so fall
-    // back to the reference build rather than crashing.
+    // piglet->adult transition — but a pet seeded mid-development might, so
+    // fall back to the reference build rather than crashing.
     Stage.adult => form == Form.base ? 'farmHog' : form.name,
     Stage.egg => 'egg',
   };

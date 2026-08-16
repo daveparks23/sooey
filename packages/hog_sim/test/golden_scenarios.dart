@@ -89,7 +89,8 @@ PetState piglet({
       weight: 25,
     );
 
-PetState shoat({
+/// A piglet close to growing up, for the piglet->adult transition.
+PetState nearlyGrown({
   String petId = 'pet_golden',
   int at = refNoon,
   int stageCareMistakes = 0,
@@ -101,7 +102,7 @@ PetState shoat({
       bornAtMillis: at - mins(kAdultBeginsAtMinutes - minutesBeforeAdult),
       lastTickAtMillis: at,
     ).copyWith(
-      stage: Stage.shoat,
+      stage: Stage.piglet,
       weight: 45,
       stageCareMistakes: stageCareMistakes,
       careMistakes: careMistakes,
@@ -177,8 +178,8 @@ List<AdvanceCase> advanceCases() {
     AdvanceCase('piglet/6h', piglet(), refNoon + 6 * hour),
     AdvanceCase('piglet/1h', piglet(), refNoon + hour),
     AdvanceCase(
-      'shoat/6h',
-      shoat(minutesBeforeAdult: 6000),
+      'older-piglet/6h',
+      nearlyGrown(minutesBeforeAdult: 6000),
       refNoon + 6 * hour,
     ),
 
@@ -276,40 +277,40 @@ List<AdvanceCase> advanceCases() {
     ),
 
     // --- stage transitions ------------------------------------------------
-    AdvanceCase('transition/piglet-to-shoat', piglet(), refNoon + 25 * hour),
+    AdvanceCase('childhood/mid-way', piglet(), refNoon + 25 * hour),
     AdvanceCase(
       'transition/to-prize-hog',
-      shoat(stageCareMistakes: 0),
+      nearlyGrown(stageCareMistakes: 0),
       refNoon + hour,
     ),
     AdvanceCase(
-      'transition/to-prize-hog-3',
-      shoat(stageCareMistakes: 3),
+      'transition/to-prize-hog-worst',
+      nearlyGrown(stageCareMistakes: kPrizeHogMaxMistakes),
       refNoon + hour,
     ),
     AdvanceCase(
       'transition/to-farm-hog',
-      shoat(stageCareMistakes: 6),
+      nearlyGrown(stageCareMistakes: kPrizeHogMaxMistakes + 1),
       refNoon + hour,
     ),
     AdvanceCase(
-      'transition/to-farm-hog-9',
-      shoat(stageCareMistakes: 9),
+      'transition/to-farm-hog-worst',
+      nearlyGrown(stageCareMistakes: kFarmHogMaxMistakes),
       refNoon + hour,
     ),
     AdvanceCase(
       'transition/to-runt',
-      shoat(stageCareMistakes: 14),
+      nearlyGrown(stageCareMistakes: kFarmHogMaxMistakes + 1),
       refNoon + hour,
     ),
     AdvanceCase(
       'transition/to-runt-extreme',
-      shoat(stageCareMistakes: 99),
+      nearlyGrown(stageCareMistakes: 99),
       refNoon + hour,
     ),
     AdvanceCase(
       'transition/keeps-lifetime-mistakes',
-      shoat(stageCareMistakes: 4, careMistakes: 21),
+      nearlyGrown(stageCareMistakes: 4, careMistakes: 21),
       refNoon + hour,
     ),
 

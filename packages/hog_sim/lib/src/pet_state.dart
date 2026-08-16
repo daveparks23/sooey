@@ -2,7 +2,13 @@ import 'dart:convert';
 
 import 'constants.dart';
 
-enum Stage { egg, piglet, shoat, adult }
+/// The pig's life stages.
+///
+/// There is no adolescent stage: a pig is an egg, then a piglet for its whole
+/// three-day childhood, then an adult. The adult form is branched at the single
+/// piglet→adult transition, so the hidden judgment weighs the entire upbringing
+/// rather than one window of it.
+enum Stage { egg, piglet, adult }
 
 enum Form { base, prizeHog, farmHog, runt }
 

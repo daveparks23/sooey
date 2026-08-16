@@ -65,17 +65,19 @@ const int kMaxIterations = 20000;
 // --- Stage timings (spec §4.1) -------------------------------------------
 
 const int kEggMinutes = 15;
-const int kPigletMinutes = 24 * 60;
-const int kShoatMinutes = 48 * 60;
+
+/// The whole childhood. The spec split this into a 24h piglet stage and a 48h
+/// shoat stage; they are merged, and the total is unchanged so the pacing to
+/// adulthood is exactly as designed.
+const int kPigletMinutes = 72 * 60;
 
 /// Age in minutes at which each stage begins.
 const int kPigletBeginsAtMinutes = kEggMinutes; // 15
-const int kShoatBeginsAtMinutes =
-    kPigletBeginsAtMinutes + kPigletMinutes; // 1455
-const int kAdultBeginsAtMinutes = kShoatBeginsAtMinutes + kShoatMinutes; // 4335
+const int kAdultBeginsAtMinutes =
+    kPigletBeginsAtMinutes + kPigletMinutes; // 4335
 
 /// Sentinel lifespan for a pet that has not yet reached adulthood. The real
-/// `expiresAt` is fixed at the shoat→adult transition; until then old age is
+/// `expiresAt` is fixed at the piglet→adult transition; until then old age is
 /// simply unreachable.
 const int kExpiresAtSentinelMillis = 4102444800000; // 2100-01-01T00:00:00Z
 
@@ -83,22 +85,31 @@ const int kExpiresAtSentinelMillis = 4102444800000; // 2100-01-01T00:00:00Z
 // Flagged in the implementation plan. Change these freely; they are balance
 // knobs, not invariants.
 
-/// Per-stage decay multiplier. A needier baby stage is the classic Tamagotchi
-/// shape: the first day demands attention, adulthood is steadier. The egg does
+/// Per-stage decay multiplier. A needier childhood is the classic Tamagotchi
+/// shape: the early days demand attention, adulthood is steadier. The egg does
 /// not decay at all — it simply hatches.
+///
+/// 1.25 is the time-weighted average of the two stages this replaced — 1.4 for
+/// 24h and 1.15 for 48h works out to 1.23 across the same window — so merging
+/// them leaves the overall difficulty of a childhood where it was rather than
+/// making three days uniformly as demanding as the old first day.
 const Map<String, double> kStageDecayMultiplier = {
   'egg': 0.0,
-  'piglet': 1.4,
-  'shoat': 1.15,
+  'piglet': 1.25,
   'adult': 1.0,
 };
 
 /// Ideal weight band per stage, used for `overweightFraction` in the sickness
 /// roll. Below or inside the band carries no penalty.
+///
+/// The piglet band spans what used to be two bands, because one stage now
+/// covers a pig growing from newborn to nearly adult. In practice the ceiling
+/// rarely binds: weight decays faster over three days than ordinary feeding
+/// replaces it, so a piglet trends toward the floor unless deliberately
+/// overfed — which is exactly when the penalty should bite.
 const Map<String, (double, double)> kIdealWeight = {
   'egg': (20.0, 35.0),
-  'piglet': (20.0, 35.0),
-  'shoat': (35.0, 60.0),
+  'piglet': (20.0, 50.0),
   'adult': (60.0, 95.0),
 };
 
@@ -147,12 +158,17 @@ const Map<String, double> kFormSicknessMultiplier = {
 
 /// Mistake bands that decide the adult form, and the lifespan each band buys.
 /// Within a band, fewer mistakes means a longer life; the exact day is fixed at
-/// the shoat→adult transition and stored as `expiresAt`.
-const int kPrizeHogMaxMistakes = 3;
-const int kFarmHogMaxMistakes = 9;
+/// the piglet→adult transition and stored as `expiresAt`.
+///
+/// Scaled 1.5x from the spec's 3 / 9 / 25. Those were tuned for a 48h shoat
+/// stage; the judgment now runs over the full 72h childhood, so leaving them
+/// alone would have made a prize hog far harder to earn without anyone
+/// deciding that it should be.
+const int kPrizeHogMaxMistakes = 5;
+const int kFarmHogMaxMistakes = 14;
 
 /// Mistake count at which the runt's lifespan bottoms out.
-const int kRuntWorstMistakes = 25;
+const int kRuntWorstMistakes = 38;
 
 const Map<String, (int, int)> kFormLifespanDays = {
   'prizeHog': (18, 20),

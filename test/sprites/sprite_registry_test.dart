@@ -114,33 +114,28 @@ void main() {
       expect(shapes[Form.prizeHog], isNot(shapes[Form.runt]));
     });
 
-    test('makes the prize hog visibly the biggest and the runt the smallest',
-        () {
-      int litDots(LcdSprite s) =>
-          s.rows.fold(0, (n, r) => n + r.split('#').length - 1);
+    test(
+      'makes the prize hog visibly the biggest and the runt the smallest',
+      () {
+        int litDots(LcdSprite s) =>
+            s.rows.fold(0, (n, r) => n + r.split('#').length - 1);
 
-      int sizeOf(Form form) => litDots(
-        creatureAnim(stage: Stage.adult, form: form, pose: PetPose.idle).a,
-      );
+        int sizeOf(Form form) => litDots(
+          creatureAnim(stage: Stage.adult, form: form, pose: PetPose.idle).a,
+        );
 
-      expect(sizeOf(Form.prizeHog), greaterThan(sizeOf(Form.farmHog)));
-      expect(sizeOf(Form.farmHog), greaterThan(sizeOf(Form.runt)));
-    });
+        expect(sizeOf(Form.prizeHog), greaterThan(sizeOf(Form.farmHog)));
+        expect(sizeOf(Form.farmHog), greaterThan(sizeOf(Form.runt)));
+      },
+    );
 
-    test('grows the pig at each life stage', () {
+    test('grows the pig from piglet to adult', () {
       int litDots(LcdSprite s) =>
           s.rows.fold(0, (n, r) => n + r.split('#').length - 1);
 
       final piglet = litDots(
         creatureAnim(
           stage: Stage.piglet,
-          form: Form.base,
-          pose: PetPose.idle,
-        ).a,
-      );
-      final shoat = litDots(
-        creatureAnim(
-          stage: Stage.shoat,
           form: Form.base,
           pose: PetPose.idle,
         ).a,
@@ -153,18 +148,13 @@ void main() {
         ).a,
       );
 
-      expect(shoat, greaterThan(piglet), reason: 'shoat should outgrow piglet');
-      expect(adult, greaterThan(shoat), reason: 'adult should outgrow shoat');
+      expect(adult, greaterThan(piglet), reason: 'adult should outgrow piglet');
     });
 
     test('all three adult forms share the wallow', () {
       final poses = [
         for (final form in [Form.prizeHog, Form.farmHog, Form.runt])
-          creatureAnim(
-            stage: Stage.adult,
-            form: form,
-            pose: PetPose.wallowing,
-          ),
+          creatureAnim(stage: Stage.adult, form: form, pose: PetPose.wallowing),
       ];
       expect(identical(poses[0], poses[1]), isTrue);
       expect(identical(poses[1], poses[2]), isTrue);

@@ -11,7 +11,7 @@
  * 92 vectors generated on the Dart VM through this bundle to keep that honest.
  */
 
-export type Stage = "egg" | "piglet" | "shoat" | "adult";
+export type Stage = "egg" | "piglet" | "adult";
 export type Form = "base" | "prizeHog" | "farmHog" | "runt";
 export type DeathCause = "starvation" | "illness" | "neglect" | "oldAge";
 export type PetActionName =

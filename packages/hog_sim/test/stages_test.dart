@@ -7,9 +7,9 @@ void main() {
       expect(stageForAgeMinutes(0), Stage.egg);
       expect(stageForAgeMinutes(14), Stage.egg);
       expect(stageForAgeMinutes(15), Stage.piglet);
-      expect(stageForAgeMinutes(1454), Stage.piglet);
-      expect(stageForAgeMinutes(1455), Stage.shoat);
-      expect(stageForAgeMinutes(4334), Stage.shoat);
+      // The childhood is one stage now, running the full 72 hours.
+      expect(stageForAgeMinutes(1455), Stage.piglet);
+      expect(stageForAgeMinutes(4334), Stage.piglet);
       expect(stageForAgeMinutes(4335), Stage.adult);
       expect(stageForAgeMinutes(100000), Stage.adult);
     });
@@ -86,19 +86,19 @@ void main() {
     });
 
     test('uses a tighter band for younger stages', () {
-      // 50kg is fine for an adult but very heavy for a piglet.
-      expect(overweightFraction(50, Stage.adult), 0);
-      expect(overweightFraction(50, Stage.piglet), greaterThan(0));
+      // 60kg is fine for an adult but heavy for a piglet.
+      expect(overweightFraction(60, Stage.adult), 0);
+      expect(overweightFraction(60, Stage.piglet), greaterThan(0));
     });
   });
 
   group('formForMistakes', () {
     test('follows the spec bands', () {
       expect(formForMistakes(0), Form.prizeHog);
-      expect(formForMistakes(3), Form.prizeHog);
-      expect(formForMistakes(4), Form.farmHog);
-      expect(formForMistakes(9), Form.farmHog);
-      expect(formForMistakes(10), Form.runt);
+      expect(formForMistakes(kPrizeHogMaxMistakes), Form.prizeHog);
+      expect(formForMistakes(kPrizeHogMaxMistakes + 1), Form.farmHog);
+      expect(formForMistakes(kFarmHogMaxMistakes), Form.farmHog);
+      expect(formForMistakes(kFarmHogMaxMistakes + 1), Form.runt);
       expect(formForMistakes(500), Form.runt);
     });
   });
@@ -109,11 +109,11 @@ void main() {
 
     test('spans the band each form is entitled to', () {
       expect(days(Form.prizeHog, 0), 20);
-      expect(days(Form.prizeHog, 3), 18);
-      expect(days(Form.farmHog, 4), 17);
-      expect(days(Form.farmHog, 9), 15);
-      expect(days(Form.runt, 10), 14);
-      expect(days(Form.runt, 25), 12);
+      expect(days(Form.prizeHog, kPrizeHogMaxMistakes), 18);
+      expect(days(Form.farmHog, kPrizeHogMaxMistakes + 1), 17);
+      expect(days(Form.farmHog, kFarmHogMaxMistakes), 15);
+      expect(days(Form.runt, kFarmHogMaxMistakes + 1), 14);
+      expect(days(Form.runt, kRuntWorstMistakes), 12);
     });
 
     test('bottoms out rather than going negative for extreme neglect', () {
@@ -122,7 +122,7 @@ void main() {
 
     test('never rewards more mistakes with a longer life', () {
       var previous = 1 << 30;
-      for (var m = 0; m <= 60; m++) {
+      for (var m = 0; m <= 80; m++) {
         final span = lifespanMinutes(formForMistakes(m), m);
         expect(
           span,
@@ -134,7 +134,7 @@ void main() {
     });
 
     test('stays inside the 12 to 20 day range the spec promises', () {
-      for (var m = 0; m <= 60; m++) {
+      for (var m = 0; m <= 80; m++) {
         final d = lifespanMinutes(formForMistakes(m), m) / kMinutesPerDay;
         expect(d, greaterThanOrEqualTo(12));
         expect(d, lessThanOrEqualTo(20));
@@ -147,13 +147,9 @@ void main() {
       expect(kStageDecayMultiplier['egg'], 0.0);
     });
 
-    test('younger stages decay faster than adults', () {
+    test('the childhood decays faster than adulthood', () {
       expect(
         kStageDecayMultiplier['piglet']!,
-        greaterThan(kStageDecayMultiplier['shoat']!),
-      );
-      expect(
-        kStageDecayMultiplier['shoat']!,
         greaterThan(kStageDecayMultiplier['adult']!),
       );
     });

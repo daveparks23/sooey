@@ -58,8 +58,8 @@ PetState _tick(PetState s, int tick) {
 
   if (newStage != stage) {
     if (newStage == Stage.adult) {
-      // Branch on the mistakes made during the shoat stage, before the counter
-      // is reset. The player is never shown either number.
+      // Branch on the mistakes made across the whole childhood, before the
+      // counter is reset. The player is never shown either number.
       form = formForMistakes(stageCareMistakes);
       expiresAt = expiresAtForAdult(s.bornAtMillis, form, stageCareMistakes);
     }

@@ -4,8 +4,7 @@ import 'pet_state.dart';
 /// Which life stage a pig of this age is in.
 Stage stageForAgeMinutes(int ageMinutes) {
   if (ageMinutes < kPigletBeginsAtMinutes) return Stage.egg;
-  if (ageMinutes < kShoatBeginsAtMinutes) return Stage.piglet;
-  if (ageMinutes < kAdultBeginsAtMinutes) return Stage.shoat;
+  if (ageMinutes < kAdultBeginsAtMinutes) return Stage.piglet;
   return Stage.adult;
 }
 
@@ -29,15 +28,15 @@ double overweightFraction(double weight, Stage stage) {
   return fraction < 0 ? 0 : (fraction > 1 ? 1 : fraction);
 }
 
-/// The adult a shoat grows into, decided by the mistakes made during the shoat
-/// stage. The player is never shown this — they just get a different pig.
+/// The adult a piglet grows into, decided by the mistakes made across its whole
+/// childhood. The player is never shown this — they just get a different pig.
 Form formForMistakes(int stageCareMistakes) {
   if (stageCareMistakes <= kPrizeHogMaxMistakes) return Form.prizeHog;
   if (stageCareMistakes <= kFarmHogMaxMistakes) return Form.farmHog;
   return Form.runt;
 }
 
-/// Total lifespan from birth, fixed at the shoat→adult transition.
+/// Total lifespan from birth, fixed at the piglet→adult transition.
 ///
 /// Within a form's band, fewer mistakes buys a longer life, interpolated across
 /// the mistake range that maps to that form.

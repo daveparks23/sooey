@@ -69,7 +69,7 @@ void main() {
       stages.add(expected['stage']! as String);
       forms.add(expected['form']! as String);
     }
-    expect(stages, containsAll(['egg', 'piglet', 'shoat', 'adult']));
+    expect(stages, containsAll(['egg', 'piglet', 'adult']));
     expect(forms, containsAll(['base', 'prizeHog', 'farmHog', 'runt']));
   });
 

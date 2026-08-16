@@ -303,9 +303,9 @@ void main() {
       expect(after.stage, Stage.piglet);
     });
 
-    test('a shoat becomes an adult and its form is fixed', () {
+    test('a piglet becomes an adult and its form is fixed', () {
       final born = refNoon - minutes(kAdultBeginsAtMinutes - 5);
-      final shoat =
+      final nearlyGrown =
           PetState.newborn(
             petId: 'pet_test',
             ownerId: 'uid_1',
@@ -313,13 +313,13 @@ void main() {
             nowMillis: born,
             utcOffsetMinutes: 0,
           ).copyWith(
-            stage: Stage.shoat,
+            stage: Stage.piglet,
             lastTickAtMillis: refNoon,
             stageCareMistakes: 2,
             careMistakes: 9,
           );
 
-      final after = advance(shoat, refNoon + minutes(30));
+      final after = advance(nearlyGrown, refNoon + minutes(30));
       expect(after.stage, Stage.adult);
       expect(after.form, Form.prizeHog);
       expect(after.expiresAtMillis, lessThan(kExpiresAtSentinelMillis));
@@ -327,9 +327,9 @@ void main() {
       expect(after.careMistakes, 9, reason: 'lifetime count is untouched');
     });
 
-    test('a neglected shoat becomes a runt', () {
+    test('a neglected piglet becomes a runt', () {
       final born = refNoon - minutes(kAdultBeginsAtMinutes - 5);
-      final shoat =
+      final nearlyGrown =
           PetState.newborn(
             petId: 'pet_test',
             ownerId: 'uid_1',
@@ -337,19 +337,19 @@ void main() {
             nowMillis: born,
             utcOffsetMinutes: 0,
           ).copyWith(
-            stage: Stage.shoat,
+            stage: Stage.piglet,
             lastTickAtMillis: refNoon,
-            stageCareMistakes: 14,
+            stageCareMistakes: kFarmHogMaxMistakes + 5,
           );
 
-      final after = advance(shoat, refNoon + minutes(30));
+      final after = advance(nearlyGrown, refNoon + minutes(30));
       expect(after.form, Form.runt);
     });
 
     test('the prize hog outlives the runt', () {
       int expiryFor(int mistakes) {
         final born = refNoon - minutes(kAdultBeginsAtMinutes - 5);
-        final shoat =
+        final nearlyGrown =
             PetState.newborn(
               petId: 'pet_test',
               ownerId: 'uid_1',
@@ -357,14 +357,14 @@ void main() {
               nowMillis: born,
               utcOffsetMinutes: 0,
             ).copyWith(
-              stage: Stage.shoat,
+              stage: Stage.piglet,
               lastTickAtMillis: refNoon,
               stageCareMistakes: mistakes,
             );
-        return advance(shoat, refNoon + minutes(30)).expiresAtMillis;
+        return advance(nearlyGrown, refNoon + minutes(30)).expiresAtMillis;
       }
 
-      expect(expiryFor(0), greaterThan(expiryFor(14)));
+      expect(expiryFor(0), greaterThan(expiryFor(kFarmHogMaxMistakes + 5)));
     });
   });
 
@@ -491,7 +491,7 @@ void main() {
 
     test('holds across a stage transition', () {
       final born = refNoon - minutes(kAdultBeginsAtMinutes - 30);
-      final shoat =
+      final nearlyGrown =
           PetState.newborn(
             petId: 'pet_test',
             ownerId: 'uid_1',
@@ -499,13 +499,13 @@ void main() {
             nowMillis: born,
             utcOffsetMinutes: 0,
           ).copyWith(
-            stage: Stage.shoat,
+            stage: Stage.piglet,
             lastTickAtMillis: refNoon,
             stageCareMistakes: 5,
           );
 
-      final oneShot = advance(shoat, refNoon + 6 * _hour);
-      final stepped = stepwise(shoat, 72, kTickMillis);
+      final oneShot = advance(nearlyGrown, refNoon + 6 * _hour);
+      final stepped = stepwise(nearlyGrown, 72, kTickMillis);
       expect(jsonEncodeState(stepped), jsonEncodeState(oneShot));
     });
 

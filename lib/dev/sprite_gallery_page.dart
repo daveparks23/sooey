@@ -115,7 +115,9 @@ class _SpriteGalleryPageState extends State<SpriteGalleryPage> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Expanded(child: LcdScreen(buffer: buffer, frame: _frame)),
+              Expanded(
+                child: LcdScreen(buffer: buffer, frame: _frame),
+              ),
               const SizedBox(height: 4),
               Text(
                 entry.key,

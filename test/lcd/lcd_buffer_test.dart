@@ -18,7 +18,10 @@ void main() {
     });
 
     test('rejects a row count that disagrees with its height', () {
-      expect(() => LcdSprite.checked(3, 5, ['#.#', '.#.']), throwsArgumentError);
+      expect(
+        () => LcdSprite.checked(3, 5, ['#.#', '.#.']),
+        throwsArgumentError,
+      );
     });
 
     test('rejects a row whose length disagrees with its width', () {

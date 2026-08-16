@@ -61,10 +61,8 @@ class _SpriteEditorPageState extends State<SpriteEditorPage> {
     setState(() => _previewFrame ^= 1);
   }
 
-  List<List<int>> _blank() => List.generate(
-    _height,
-    (_) => List<int>.filled(_width, LcdSprite.off),
-  );
+  List<List<int>> _blank() =>
+      List.generate(_height, (_) => List<int>.filled(_width, LcdSprite.off));
 
   LcdSprite _spriteOf(int frame) => LcdSprite(_width, _height, [
     for (final row in _frames[frame]) String.fromCharCodes(row),
@@ -130,7 +128,7 @@ class _SpriteEditorPageState extends State<SpriteEditorPage> {
   /// Emits the sprite as Dart you can paste straight over the existing literal.
   ///
   /// The constant name comes from the registry rather than the display key —
-  /// naming it after the key would produce `shoat.eating1`, which is not a
+  /// naming it after the key would produce `runt.eating1`, which is not a
   /// valid identifier.
   String _asDart() {
     final anim = _loadedName == null ? null : kSpriteRegistry[_loadedName];
@@ -199,10 +197,18 @@ class _SpriteEditorPageState extends State<SpriteEditorPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: grid),
-                    SizedBox(width: 340, child: SingleChildScrollView(child: side)),
+                    SizedBox(
+                      width: 340,
+                      child: SingleChildScrollView(child: side),
+                    ),
                   ],
                 )
-              : ListView(children: [SizedBox(height: 400, child: grid), side]);
+              : ListView(
+                  children: [
+                    SizedBox(height: 400, child: grid),
+                    side,
+                  ],
+                );
         },
       ),
     );
@@ -319,9 +325,9 @@ class _SpriteEditorPageState extends State<SpriteEditorPage> {
             onPressed: () async {
               await Clipboard.setData(ClipboardData(text: _asDart()));
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied as Dart')),
-                );
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('Copied as Dart')));
               }
             },
             icon: const Icon(Icons.copy),

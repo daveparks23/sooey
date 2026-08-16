@@ -81,7 +81,10 @@ void main() {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
-            child: LcdScreen(buffer: LcdBuffer()..blit(kFarmHogIdle1, 0, 0), frame: 0),
+            child: LcdScreen(
+              buffer: LcdBuffer()..blit(kFarmHogIdle1, 0, 0),
+              frame: 0,
+            ),
           ),
         );
 
@@ -89,8 +92,16 @@ void main() {
           find.byType(CustomPaint).first,
         );
         final lcd = painter.painter! as LcdPainter;
-        expect(lcd.dotSize * kLcdWidth, painter.size.width, reason: 'width $width');
-        expect(lcd.dotSize * kLcdHeight, painter.size.height, reason: 'width $width');
+        expect(
+          lcd.dotSize * kLcdWidth,
+          painter.size.width,
+          reason: 'width $width',
+        );
+        expect(
+          lcd.dotSize * kLcdHeight,
+          painter.size.height,
+          reason: 'width $width',
+        );
       }
       await tester.binding.setSurfaceSize(null);
     });
