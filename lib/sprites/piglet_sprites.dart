@@ -52,9 +52,12 @@ const kPigletIdle2 = LcdSprite(32, 16, [
   '................................',
 ]);
 
-/// Eating is a chew: the mouth opens and shuts on the spot. Moving the whole
-/// body would read as flinching rather than feeding.
+/// The piglet is the one creature that cannot root: it faces the player, so a
+/// head-down pose would just be a shape getting shorter. Instead the head dips
+/// a row and the mouth opens, then it comes back up with the mouth shut — the
+/// same nod as the side-view pigs, read front-on.
 const kPigletEat1 = LcdSprite(32, 16, [
+  '................................',
   '................................',
   '................................',
   '................................',
@@ -68,7 +71,6 @@ const kPigletEat1 = LcdSprite(32, 16, [
   '........###############.........',
   '.........###..###..###..........',
   '.........####.....####..........',
-  '...........###...###............',
   '...........###...###............',
   '................................',
 ]);

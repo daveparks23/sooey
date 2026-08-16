@@ -20,14 +20,41 @@ class SpriteGalleryPage extends StatefulWidget {
 class _SpriteGalleryPageState extends State<SpriteGalleryPage> {
   Timer? _timer;
   int _frame = 0;
+  bool _playing = true;
 
   @override
   void initState() {
     super.initState();
+    _start();
+  }
+
+  void _start() {
+    _timer?.cancel();
     _timer = Timer.periodic(
       const Duration(milliseconds: kAnimFrameMillis),
       (_) => setState(() => _frame++),
     );
+  }
+
+  /// Pausing matters for judging the art: a two-frame animation is only
+  /// reviewable if you can stop on each frame and compare them deliberately.
+  void _togglePlay() {
+    setState(() {
+      _playing = !_playing;
+      if (_playing) {
+        _start();
+      } else {
+        _timer?.cancel();
+      }
+    });
+  }
+
+  void _step() {
+    setState(() {
+      _playing = false;
+      _timer?.cancel();
+      _frame++;
+    });
   }
 
   @override
@@ -44,12 +71,24 @@ class _SpriteGalleryPageState extends State<SpriteGalleryPage> {
       appBar: AppBar(
         title: const Text('Sprite gallery'),
         actions: [
+          IconButton(
+            tooltip: _playing ? 'Pause' : 'Play',
+            onPressed: _togglePlay,
+            icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
+          ),
+          IconButton(
+            tooltip: 'Step one frame',
+            onPressed: _step,
+            icon: const Icon(Icons.skip_next),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: Text(
                 'frame ${_frame.isEven ? 1 : 2}',
-                style: const TextStyle(fontFeatures: [FontFeature.tabularFigures()]),
+                style: const TextStyle(
+                  fontFeatures: [FontFeature.tabularFigures()],
+                ),
               ),
             ),
           ),
