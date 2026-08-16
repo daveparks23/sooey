@@ -2,6 +2,7 @@ import 'package:hog_sim/hog_sim.dart';
 
 import '../lcd/lcd_sprite.dart';
 import 'adult_sprites.dart';
+import 'draft_extra_sprites.dart';
 import 'draft_face_sprites.dart';
 import 'draft_piglet_face_sprites.dart';
 import 'piglet_sprites.dart';
@@ -9,6 +10,7 @@ import 'prop_sprites.dart';
 import 'wallow_sprites.dart';
 
 export 'adult_sprites.dart';
+export 'draft_extra_sprites.dart';
 export 'draft_face_sprites.dart';
 export 'draft_piglet_face_sprites.dart';
 export 'piglet_sprites.dart';
@@ -62,6 +64,7 @@ const _adults = 'lib/sprites/adult_sprites.dart';
 const _wallows = 'lib/sprites/wallow_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
 const _draft = 'lib/sprites/draft_face_sprites.dart';
+const _draftExtra = 'lib/sprites/draft_extra_sprites.dart';
 const _draftPiglet = 'lib/sprites/draft_piglet_face_sprites.dart';
 
 const Map<String, SpriteAnim> kSpriteRegistry = {
@@ -262,6 +265,37 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     kPigletFaceSick2,
     dartName: 'kPigletFaceSick',
     sourceFile: _draftPiglet,
+  ),
+
+  'draft.prizeHog.idle': SpriteAnim(
+    kPrizeFaceIdle1,
+    kPrizeFaceIdle2,
+    dartName: 'kPrizeFaceIdle',
+    sourceFile: _draftExtra,
+  ),
+  'draft.runt.idle': SpriteAnim(
+    kRuntFaceIdle1,
+    kRuntFaceIdle2,
+    dartName: 'kRuntFaceIdle',
+    sourceFile: _draftExtra,
+  ),
+  'draft.adult.wallowing': SpriteAnim(
+    kAdultFaceWallow1,
+    kAdultFaceWallow2,
+    dartName: 'kAdultFaceWallow',
+    sourceFile: _draftExtra,
+  ),
+  'draft.piglet.wallowing': SpriteAnim(
+    kPigletFaceWallow1,
+    kPigletFaceWallow2,
+    dartName: 'kPigletFaceWallow',
+    sourceFile: _draftExtra,
+  ),
+  'draft.egg': SpriteAnim(
+    kEggOutline1,
+    kEggOutline2,
+    dartName: 'kEggOutline',
+    sourceFile: _draftExtra,
   ),
 };
 
