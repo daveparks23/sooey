@@ -2,6 +2,7 @@ import 'package:hog_sim/hog_sim.dart';
 
 import '../lcd/lcd_sprite.dart';
 import 'adult_sprites.dart';
+import 'draft_adult_form_sprites.dart';
 import 'draft_extra_sprites.dart';
 import 'draft_face_sprites.dart';
 import 'draft_piglet_face_sprites.dart';
@@ -10,6 +11,7 @@ import 'prop_sprites.dart';
 import 'wallow_sprites.dart';
 
 export 'adult_sprites.dart';
+export 'draft_adult_form_sprites.dart';
 export 'draft_extra_sprites.dart';
 export 'draft_face_sprites.dart';
 export 'draft_piglet_face_sprites.dart';
@@ -65,6 +67,7 @@ const _wallows = 'lib/sprites/wallow_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
 const _draft = 'lib/sprites/draft_face_sprites.dart';
 const _draftExtra = 'lib/sprites/draft_extra_sprites.dart';
+const _draftForms = 'lib/sprites/draft_adult_form_sprites.dart';
 const _draftPiglet = 'lib/sprites/draft_piglet_face_sprites.dart';
 
 const Map<String, SpriteAnim> kSpriteRegistry = {
@@ -267,18 +270,6 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     sourceFile: _draftPiglet,
   ),
 
-  'draft.prizeHog.idle': SpriteAnim(
-    kPrizeFaceIdle1,
-    kPrizeFaceIdle2,
-    dartName: 'kPrizeFaceIdle',
-    sourceFile: _draftExtra,
-  ),
-  'draft.runt.idle': SpriteAnim(
-    kRuntFaceIdle1,
-    kRuntFaceIdle2,
-    dartName: 'kRuntFaceIdle',
-    sourceFile: _draftExtra,
-  ),
   'draft.adult.wallowing': SpriteAnim(
     kAdultFaceWallow1,
     kAdultFaceWallow2,
@@ -291,11 +282,78 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     dartName: 'kPigletFaceWallow',
     sourceFile: _draftExtra,
   ),
-  'draft.egg': SpriteAnim(
-    kEggOutline1,
-    kEggOutline2,
-    dartName: 'kEggOutline',
-    sourceFile: _draftExtra,
+
+  'draft.prizeHog.idle': SpriteAnim(
+    kPrizeFaceIdle1,
+    kPrizeFaceIdle2,
+    dartName: 'kPrizeFaceIdle',
+    sourceFile: _draftForms,
+  ),
+  'draft.prizeHog.happy': SpriteAnim(
+    kPrizeFaceHappy1,
+    kPrizeFaceHappy2,
+    dartName: 'kPrizeFaceHappy',
+    sourceFile: _draftForms,
+  ),
+  'draft.prizeHog.sad': SpriteAnim(
+    kPrizeFaceSad1,
+    kPrizeFaceSad2,
+    dartName: 'kPrizeFaceSad',
+    sourceFile: _draftForms,
+  ),
+  'draft.prizeHog.eating': SpriteAnim(
+    kPrizeFaceEat1,
+    kPrizeFaceEat2,
+    dartName: 'kPrizeFaceEat',
+    sourceFile: _draftForms,
+  ),
+  'draft.prizeHog.sleeping': SpriteAnim(
+    kPrizeFaceSleep1,
+    kPrizeFaceSleep2,
+    dartName: 'kPrizeFaceSleep',
+    sourceFile: _draftForms,
+  ),
+  'draft.prizeHog.sick': SpriteAnim(
+    kPrizeFaceSick1,
+    kPrizeFaceSick2,
+    dartName: 'kPrizeFaceSick',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.idle': SpriteAnim(
+    kRuntFaceIdle1,
+    kRuntFaceIdle2,
+    dartName: 'kRuntFaceIdle',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.happy': SpriteAnim(
+    kRuntFaceHappy1,
+    kRuntFaceHappy2,
+    dartName: 'kRuntFaceHappy',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.sad': SpriteAnim(
+    kRuntFaceSad1,
+    kRuntFaceSad2,
+    dartName: 'kRuntFaceSad',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.eating': SpriteAnim(
+    kRuntFaceEat1,
+    kRuntFaceEat2,
+    dartName: 'kRuntFaceEat',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.sleeping': SpriteAnim(
+    kRuntFaceSleep1,
+    kRuntFaceSleep2,
+    dartName: 'kRuntFaceSleep',
+    sourceFile: _draftForms,
+  ),
+  'draft.runt.sick': SpriteAnim(
+    kRuntFaceSick1,
+    kRuntFaceSick2,
+    dartName: 'kRuntFaceSick',
+    sourceFile: _draftForms,
   ),
 };
 
