@@ -107,20 +107,22 @@ const kFaceHappy2 = LcdSprite(32, 16, [
   '..........####...####...........',
 ]);
 
-/// SAD — heavy lids over small pupils, and the ears fold down the sides of the
-/// head instead of standing up.
+/// SAD — a heavy lid over each eye with the pupil sunk to the outer corner.
 ///
-/// Two channels moving together is what sells it. Droopy eyes alone read as
-/// sleepy; dropping the ears as well reads as miserable, and the difference
-/// between those two is most of this game's emotional vocabulary.
+/// Everything except the two eye rows is the idle face, untouched. That is the
+/// rule for every mood here: the skull, ears, snout and body are load-bearing,
+/// and redrawing them just to change an expression is how you end up with a
+/// head that no longer lines up with its own snout.
+///
+/// The pupils sit at the *outer* corners rather than centred. Centred pupils
+/// under a lid read as sleepy; pushing them apart reads as dejected.
 const kFaceSad1 = LcdSprite(32, 16, [
-  '................................',
-  '........###.......###...........',
-  '........#.#########.#...........',
-  '........#.#.......#.#...........',
-  '........##.#######.##...........',
+  '.........###.......###..........',
+  '........#...#######...#.........',
+  '........#..##.....##..#.........',
+  '.........##.........##..........',
   '.........#.###...###.#..........',
-  '........#...#.....#...#.........',
+  '........#..#.......#..#.........',
   '........#....#####....#.........',
   '........#...#.....#...#.........',
   '........#...#.#.#.#...#.........',
@@ -128,20 +130,21 @@ const kFaceSad1 = LcdSprite(32, 16, [
   '.........#...#####...#..........',
   '.........#...........#..........',
   '..........#.........#...........',
+  '..........#.........#...........',
   '..........#..#####..#...........',
   '..........####...####...........',
 ]);
 
 const kFaceSad2 = LcdSprite(32, 16, [
   '................................',
-  '................................',
-  '........###.......###...........',
-  '........#.#########.#...........',
-  '........#.#.......#.#...........',
-  '........##.#######.##...........',
+  '.........###.......###..........',
+  '........#...#######...#.........',
+  '........#..##.....##..#.........',
+  '.........##.........##..........',
   '.........#.###...###.#..........',
-  '........#...#.....#...#.........',
+  '........#..#.......#..#.........',
   '........#....#####....#.........',
+  '........#...#.....#...#.........',
   '........#...#.#.#.#...#.........',
   '........#...#.....#...#.........',
   '.........#...#####...#..........',
@@ -220,18 +223,22 @@ const kFaceSleep2 = LcdSprite(32, 16, [
   '..........####...####...........',
 ]);
 
-/// SICK — the classic spiral-ish dead eye, plus sagging ears.
+/// SICK — eyes squeezed shut in a grimace, with a bead of sweat beside the head.
 ///
-/// Crosses for eyes are the obvious choice and the wrong one: this pig is ill,
-/// not dead, and the game has a separate grave for that.
+/// The eyes alone are not enough here. Squeezed-shut and heavy-lidded are only
+/// a couple of dots apart at this size, so sickness would keep getting confused
+/// with sadness. The sweat drop is what separates them: it is the one mark on
+/// the face that means nothing else, and it costs four dots.
+///
+/// Crosses for eyes are the obvious alternative and the wrong one — this pig is
+/// ill, not dead, and the game has a grave for that.
 const kFaceSick1 = LcdSprite(32, 16, [
-  '................................',
-  '........###.......###...........',
-  '........#.#########.#...........',
-  '........#.#.......#.#...........',
-  '........##.##...##.##...........',
-  '.........#..#...#..#.#..........',
-  '........#...##.##.....#.........',
+  '.........###.......###..........',
+  '........#...#######...#.........',
+  '........#..##.....##..#.........',
+  '.........##.........##..#.......',
+  '.........#.#.#...#.#.#..#.......',
+  '........#...#.....#...#.##......',
   '........#....#####....#.........',
   '........#...#.....#...#.........',
   '........#...#.#.#.#...#.........',
@@ -239,20 +246,23 @@ const kFaceSick1 = LcdSprite(32, 16, [
   '.........#...#####...#..........',
   '.........#...........#..........',
   '..........#.........#...........',
+  '..........#.........#...........',
   '..........#..#####..#...........',
   '..........####...####...........',
 ]);
 
+/// The drop falls a row as the head settles — the only moving part, which is
+/// what keeps a sick pig looking listless rather than merely paused.
 const kFaceSick2 = LcdSprite(32, 16, [
   '................................',
-  '................................',
-  '........###.......###...........',
-  '........#.#########.#...........',
-  '........#.#.......#.#...........',
-  '........##.##...##.##...........',
-  '.........#..#...#..#.#..........',
-  '........#...##.##.....#.........',
-  '........#....#####....#.........',
+  '.........###.......###..........',
+  '........#...#######...#.........',
+  '........#..##.....##..#.........',
+  '.........##.........##..........',
+  '.........#.#.#...#.#.#..#.......',
+  '........#...#.....#...#.#.......',
+  '........#....#####....#.##......',
+  '........#...#.....#...#.........',
   '........#...#.#.#.#...#.........',
   '........#...#.....#...#.........',
   '.........#...#####...#..........',
