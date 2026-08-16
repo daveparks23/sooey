@@ -36,36 +36,29 @@ const kCallIcon = LcdSprite(2, 5, ['##', '##', '##', '  ', '##']);
 /// even when the pig is asleep and barely visible.
 const kLightOffIcon = LcdSprite(3, 3, ['#.#', '.#.', '#.#']);
 
-/// The grave. A cross is punched clean through the stone rather than drawn on
-/// it, matching how eyes are handled everywhere else.
+/// The grave.
 ///
-/// Sized 14 wide for one reason: the cross arms need at least three columns of
-/// stone left either side of them. At 12 wide only one column survived, the
-/// slab read as cut in half, and the whole thing looked like an archway rather
-/// than a headstone.
-const kGrave = LcdSprite(14, 12, [
-  '....######....',
-  '..##########..',
-  '.############.',
-  '.#####..#####.',
-  '.###......###.',
-  '.###......###.',
-  '.#####..#####.',
-  '.#####..#####.',
-  '.#####..#####.',
-  '.############.',
-  '.############.',
-  '##############',
-]);
-
-/// Shown on the death screen above the grave.
-const kSkull = LcdSprite(7, 6, [
-  '.#####.',
-  '#######',
-  '#.###.#',
-  '#.###.#',
-  '#######',
-  '.#.#.#.',
+/// RIP is punched clean through the stone rather than carved onto it, matching
+/// how eyes are handled everywhere else in the cast.
+///
+/// 16 wide because the lettering sets the floor: three 3-wide glyphs with gaps
+/// between them needs eleven columns, and the stone has to keep a solid margin
+/// either side or the letters break its outline and it stops reading as a slab.
+/// At this size an R and an A are the same shape — it is the company of the I
+/// and the P that makes it a word.
+const kGrave = LcdSprite(16, 12, [
+  '.....######.....',
+  '...##########...',
+  '.##############.',
+  '.##############.',
+  '.#...#...#...##.',
+  '.#.#.##.##.#.##.',
+  '.#...##.##...##.',
+  '.#.#.##.##.####.',
+  '.#.#.#...#.####.',
+  '.##############.',
+  '.##############.',
+  '################',
 ]);
 
 /// The egg, before it hatches. Two frames of a wobble — the only thing an egg

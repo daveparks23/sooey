@@ -274,11 +274,6 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     dartName: 'kGrave',
     sourceFile: _props,
   ),
-  'prop.skull': SpriteAnim.still(
-    kSkull,
-    dartName: 'kSkull',
-    sourceFile: _props,
-  ),
 };
 
 /// Every pose a creature build is required to provide.

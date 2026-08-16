@@ -212,7 +212,10 @@ prizeHog   idle happy sad sick eating sleeping wallowing
 runt       idle happy sad sick eating sleeping wallowing
 ```
 
-Plus `egg` and the props (poop, heart, sick, call, lightOff, grave, skull).
+Plus `egg` and the props (poop, heart, sick, call, lightOff, grave).
+
+`kHeart` is registered but not yet drawn — it is the celebration after a good
+truffle-hunt round, which lands in M4.
 
 Design notes worth keeping:
 
