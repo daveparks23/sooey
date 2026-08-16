@@ -1,0 +1,173 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:hog_sim/hog_sim.dart';
+import 'package:sooey/lcd/lcd_buffer.dart';
+import 'package:sooey/lcd/lcd_sprite.dart';
+import 'package:sooey/sprites/sprite_registry.dart';
+
+void main() {
+  group('every sprite in the cast', () {
+    test('is well formed', () {
+      // Sprites are hand-authored ASCII, so a miscounted row is by far the
+      // likeliest defect and one that would otherwise show up as a silently
+      // clipped pig.
+      kSpriteRegistry.forEach((name, anim) {
+        anim.a.validate('$name frame 1');
+        anim.b.validate('$name frame 2');
+      });
+    });
+
+    test('draws something', () {
+      kSpriteRegistry.forEach((name, anim) {
+        for (final (i, sprite) in [anim.a, anim.b].indexed) {
+          expect(
+            sprite.rows.any((r) => r.contains('#')),
+            isTrue,
+            reason: '$name frame ${i + 1} is blank',
+          );
+        }
+      });
+    });
+
+    test('fits the display', () {
+      kSpriteRegistry.forEach((name, anim) {
+        for (final sprite in [anim.a, anim.b]) {
+          expect(sprite.width, lessThanOrEqualTo(kLcdWidth), reason: name);
+          expect(sprite.height, lessThanOrEqualTo(kLcdHeight), reason: name);
+        }
+      });
+    });
+  });
+
+  group('creature animations', () {
+    test('move between their two frames', () {
+      // A creature whose frames are identical is a pig that looks like a
+      // rendering bug. Props are allowed to be still; creatures are not.
+      for (final entry in kSpriteRegistry.entries) {
+        if (entry.key.startsWith('prop.')) continue;
+        expect(
+          entry.value.a.rows.join(),
+          isNot(entry.value.b.rows.join()),
+          reason: '${entry.key} does not animate',
+        );
+      }
+    });
+
+    test('keep the creature planted on the same floor line', () {
+      // The lowest lit row must not jump between frames, or the pig appears to
+      // hop rather than shift its weight. Wallowing is exempt: the mud is
+      // supposed to slosh.
+      int lowestLitRow(LcdSprite s) {
+        for (var y = s.rows.length - 1; y >= 0; y--) {
+          if (s.rows[y].contains('#')) return y;
+        }
+        return -1;
+      }
+
+      for (final entry in kSpriteRegistry.entries) {
+        if (entry.key.startsWith('prop.')) continue;
+        if (entry.key.endsWith('.wallowing')) continue;
+        expect(
+          lowestLitRow(entry.value.a),
+          lowestLitRow(entry.value.b),
+          reason: '${entry.key} shifts its floor line between frames',
+        );
+      }
+    });
+
+    test('alternate on the frame counter', () {
+      const anim = SpriteAnim(kPigletIdle1, kPigletIdle2);
+      expect(identical(anim.frame(0), kPigletIdle1), isTrue);
+      expect(identical(anim.frame(1), kPigletIdle2), isTrue);
+      expect(identical(anim.frame(2), kPigletIdle1), isTrue);
+    });
+  });
+
+  group('creatureAnim', () {
+    test('covers every stage, form and pose', () {
+      for (final stage in Stage.values) {
+        for (final form in Form.values) {
+          for (final pose in PetPose.values) {
+            final anim = creatureAnim(stage: stage, form: form, pose: pose);
+            expect(
+              anim.a.rows.any((r) => r.contains('#')),
+              isTrue,
+              reason: '${stage.name}/${form.name}/${pose.name} is blank',
+            );
+          }
+        }
+      }
+    });
+
+    test('gives each adult form a distinct silhouette', () {
+      // The player is never told which adult they got, so the three have to be
+      // tellable apart at a glance or the hidden judgment lands on nothing.
+      final shapes = {
+        for (final form in [Form.prizeHog, Form.farmHog, Form.runt])
+          form: creatureAnim(
+            stage: Stage.adult,
+            form: form,
+            pose: PetPose.idle,
+          ).a.rows.join(),
+      };
+      expect(shapes[Form.prizeHog], isNot(shapes[Form.farmHog]));
+      expect(shapes[Form.farmHog], isNot(shapes[Form.runt]));
+      expect(shapes[Form.prizeHog], isNot(shapes[Form.runt]));
+    });
+
+    test('makes the prize hog visibly the biggest and the runt the smallest',
+        () {
+      int litDots(LcdSprite s) =>
+          s.rows.fold(0, (n, r) => n + r.split('#').length - 1);
+
+      int sizeOf(Form form) => litDots(
+        creatureAnim(stage: Stage.adult, form: form, pose: PetPose.idle).a,
+      );
+
+      expect(sizeOf(Form.prizeHog), greaterThan(sizeOf(Form.farmHog)));
+      expect(sizeOf(Form.farmHog), greaterThan(sizeOf(Form.runt)));
+    });
+
+    test('grows the pig at each life stage', () {
+      int litDots(LcdSprite s) =>
+          s.rows.fold(0, (n, r) => n + r.split('#').length - 1);
+
+      final piglet = litDots(
+        creatureAnim(
+          stage: Stage.piglet,
+          form: Form.base,
+          pose: PetPose.idle,
+        ).a,
+      );
+      final shoat = litDots(
+        creatureAnim(
+          stage: Stage.shoat,
+          form: Form.base,
+          pose: PetPose.idle,
+        ).a,
+      );
+      final adult = litDots(
+        creatureAnim(
+          stage: Stage.adult,
+          form: Form.farmHog,
+          pose: PetPose.idle,
+        ).a,
+      );
+
+      expect(shoat, greaterThan(piglet), reason: 'shoat should outgrow piglet');
+      expect(adult, greaterThan(shoat), reason: 'adult should outgrow shoat');
+    });
+
+    test('all three adult forms share the wallow', () {
+      final poses = [
+        for (final form in [Form.prizeHog, Form.farmHog, Form.runt])
+          creatureAnim(
+            stage: Stage.adult,
+            form: form,
+            pose: PetPose.wallowing,
+          ),
+      ];
+      expect(identical(poses[0], poses[1]), isTrue);
+      expect(identical(poses[1], poses[2]), isTrue);
+    });
+  });
+}
