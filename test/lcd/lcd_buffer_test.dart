@@ -136,4 +136,53 @@ void main() {
       expect(b.toAscii().contains('#'), isTrue);
     });
   });
+
+  group('LcdBuffer.sized', () {
+    test('takes its own dimensions rather than the display constants', () {
+      final b = LcdBuffer.sized(32, 7);
+      expect(b.width, 32);
+      expect(b.height, 7);
+    });
+
+    test('clips a blit at its own edges, not the display size', () {
+      // The icon strips are 7 rows tall. A strip that clipped at row 16 would
+      // write past the end of its own pixel rows.
+      final b = LcdBuffer.sized(8, 3)
+        ..blit(sprite('####\n####\n####\n####'), 6, 1);
+      expect(b.get(6, 1), isTrue);
+      expect(b.get(7, 2), isTrue);
+      expect(b.toAscii().split('\n').length, 3);
+    });
+
+    test('toAscii reports its own shape', () {
+      final lines = LcdBuffer.sized(5, 2).toAscii().split('\n');
+      expect(lines.length, 2);
+      expect(lines.first.length, 5);
+    });
+
+    test('the default constructor is still the display size', () {
+      final b = LcdBuffer();
+      expect(b.width, 32);
+      expect(b.height, 16);
+    });
+  });
+
+  group('LcdBuffer.set', () {
+    test('turns a single dot on and off', () {
+      final b = LcdBuffer()..set(3, 4, true);
+      expect(b.get(3, 4), isTrue);
+      b.set(3, 4, false);
+      expect(b.get(3, 4), isFalse);
+    });
+
+    test('drops out-of-bounds writes rather than throwing', () {
+      // Bars and pips are positioned by arithmetic, not by hand, so a dot one
+      // past the edge should nudge off-screen exactly as a blit does.
+      final b = LcdBuffer()
+        ..set(-1, 0, true)
+        ..set(32, 0, true)
+        ..set(0, 16, true);
+      expect(b.toAscii(), LcdBuffer().toAscii());
+    });
+  });
 }

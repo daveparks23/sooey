@@ -10,23 +10,35 @@ const int kLcdHeight = 16;
 /// Composited fresh each frame and handed to a single painter, which is cheap:
 /// 512 dots is nothing, and rebuilding avoids any question of stale state.
 class LcdBuffer {
-  LcdBuffer()
+  /// The display. Every creature sprite is authored against this size.
+  LcdBuffer() : this.sized(kLcdWidth, kLcdHeight);
+
+  /// A buffer of any size. The icon strips are 32x7 pieces of the same glass.
+  LcdBuffer.sized(this.width, this.height)
     : _pixels = List.generate(
-        kLcdHeight,
-        (_) => List<bool>.filled(kLcdWidth, false),
+        height,
+        (_) => List<bool>.filled(width, false),
         growable: false,
       );
 
-  final List<List<bool>> _pixels;
+  final int width;
+  final int height;
 
-  int get width => kLcdWidth;
-  int get height => kLcdHeight;
+  final List<List<bool>> _pixels;
 
   bool get(int x, int y) => _pixels[y][x];
 
+  /// Sets one dot. Out-of-bounds writes are dropped, matching [blit] — bars and
+  /// pips are placed by arithmetic rather than by hand, and a dot one past the
+  /// edge should nudge off-screen rather than crash the game.
+  void set(int x, int y, bool on) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return;
+    _pixels[y][x] = on;
+  }
+
   void clear() {
-    for (var y = 0; y < kLcdHeight; y++) {
-      _pixels[y].fillRange(0, kLcdWidth, false);
+    for (var y = 0; y < height; y++) {
+      _pixels[y].fillRange(0, width, false);
     }
   }
 
@@ -38,12 +50,12 @@ class LcdBuffer {
   void blit(LcdSprite sprite, int dx, int dy) {
     for (var sy = 0; sy < sprite.rows.length; sy++) {
       final y = dy + sy;
-      if (y < 0 || y >= kLcdHeight) continue;
+      if (y < 0 || y >= height) continue;
       final row = sprite.rows[sy];
       final targetRow = _pixels[y];
       for (var sx = 0; sx < row.length; sx++) {
         final x = dx + sx;
-        if (x < 0 || x >= kLcdWidth) continue;
+        if (x < 0 || x >= width) continue;
         switch (row.codeUnitAt(sx)) {
           case LcdSprite.on:
             targetRow[x] = true;
@@ -62,9 +74,9 @@ class LcdBuffer {
   /// a human can read, not an image comparison.
   String toAscii() {
     final buffer = StringBuffer();
-    for (var y = 0; y < kLcdHeight; y++) {
+    for (var y = 0; y < height; y++) {
       if (y > 0) buffer.writeln();
-      for (var x = 0; x < kLcdWidth; x++) {
+      for (var x = 0; x < width; x++) {
         buffer.write(_pixels[y][x] ? '#' : '.');
       }
     }

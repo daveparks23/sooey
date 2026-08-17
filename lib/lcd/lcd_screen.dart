@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'lcd_buffer.dart';
+import 'lcd_matrix.dart';
 import 'lcd_painter.dart';
 import 'lcd_theme.dart';
 
@@ -30,25 +31,11 @@ class LcdScreen extends StatelessWidget {
           constraints.maxHeight - padding * 2,
         );
         final dotSize = lcdDotSize(available);
-        final grid = lcdGridSize(dotSize);
 
         return Container(
           color: LcdTheme.screen,
           alignment: Alignment.center,
-          child: SizedBox(
-            width: grid.width,
-            height: grid.height,
-            child: CustomPaint(
-              size: grid,
-              isComplex: false,
-              willChange: true,
-              painter: LcdPainter(
-                buffer: buffer,
-                frame: frame,
-                dotSize: dotSize,
-              ),
-            ),
-          ),
+          child: LcdMatrix(buffer: buffer, frame: frame, dotSize: dotSize),
         );
       },
     );

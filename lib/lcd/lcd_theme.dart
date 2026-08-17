@@ -13,6 +13,11 @@ abstract final class LcdTheme {
   /// than leaving them blank is most of what sells the illusion.
   static const Color dotOff = Color(0xFF93A667);
 
+  /// An icon segment that is present but not selected. Sits between [dotOn] and
+  /// [dotOff] so an unselected icon reads as dormant rather than as absent —
+  /// which is how a real LCD's fixed segments behave.
+  static const Color dotDim = Color(0xFF525E37);
+
   static const Color screen = Color(0xFF9CAF6E);
 
   static const Color shell = Color(0xFFE3A6B5);
