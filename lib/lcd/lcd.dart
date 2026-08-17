@@ -3,6 +3,7 @@
 library;
 
 export 'lcd_buffer.dart';
+export 'lcd_bars.dart';
 export 'lcd_matrix.dart';
 export 'lcd_painter.dart';
 export 'lcd_screen.dart';
