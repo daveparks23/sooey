@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:hog_sim/hog_sim.dart';
 
 import '../../lcd/lcd_buffer.dart';
-import '../../sprites/prop_sprites.dart';
 import '../../sprites/sprite_registry.dart';
 import '../game_constants.dart';
 import '../pet_appearance.dart';

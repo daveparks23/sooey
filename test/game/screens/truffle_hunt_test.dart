@@ -100,18 +100,16 @@ void main() {
       // A creature sprite is the full screen with unlit dots all round the pig,
       // so blitting it at an offset paints over whatever was already there.
       //
-      // Assert on the mound the pig actually reaches: _AlwaysLeft sends it to
-      // x = -9, covering columns 0-22, which is the LEFT mound at 2-6. The
-      // right-hand one at 25-29 is never overlapped, so testing that one would
-      // pass whatever the draw order is.
+      // Assert the mound's exact shape, not merely that something is lit there.
+      // At dx = -9 the pig's own artwork puts dots at columns 2-6 of row 14, so
+      // a presence check passes whichever order the two are drawn in. The
+      // mound's rows are '.###.' and '#####'; reverse the order and the pig
+      // overwrites both.
       final hunt = TruffleHunt(random: _AlwaysLeft())
         ..handle(Button.a, testContext());
       final rows = hunt.compose(testContext(), 0).toAscii().split('\n');
-      expect(
-        rows[14].substring(2, 7),
-        contains('#'),
-        reason: 'the left-hand mound was erased by the pig on top of it',
-      );
+      expect(rows[13].substring(2, 7), '.###.', reason: 'mound row 2 erased');
+      expect(rows[14].substring(2, 7), '#####', reason: 'mound row 3 erased');
     });
 
     test('moves the pig off centre once it has committed', () {
