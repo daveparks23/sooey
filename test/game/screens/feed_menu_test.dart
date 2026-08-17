@@ -38,8 +38,15 @@ void main() {
 
   group('the frame', () {
     test('draws both choices, so the alternative is visible', () {
-      final ascii = FeedMenu().compose(testContext(), 0).toAscii();
-      expect(ascii, contains('#'));
+      // Assert each icon is lit within its own columns. A bare `contains('#')`
+      // cannot fail here — two opaque icons are always blitted — so it would
+      // pass with one icon, no icons, or both stacked on each other.
+      final rows = FeedMenu().compose(testContext(), 0).toAscii().split('\n');
+      bool litBetween(int from, int to) =>
+          rows.any((r) => r.substring(from, to).contains('#'));
+
+      expect(litBetween(8, 15), isTrue, reason: 'slop icon missing');
+      expect(litBetween(17, 24), isTrue, reason: 'treat icon missing');
     });
 
     test('marks the two choices differently', () {
