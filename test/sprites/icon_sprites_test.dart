@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sooey/game/screens/device_screen.dart';
 import 'package:sooey/sprites/icon_sprites.dart';
+import 'package:sooey/sprites/prop_sprites.dart';
 
 void main() {
   group('the strip icons', () {
@@ -23,6 +24,7 @@ void main() {
       kDeviceIcons.forEach((icon, sprite) => sprite.validate(icon.name));
       kTreatIcon.validate('kTreatIcon');
       kWeightIcon.validate('kWeightIcon');
+      kMound.validate('kMound');
     });
 
     test('are all distinguishable from one another', () {

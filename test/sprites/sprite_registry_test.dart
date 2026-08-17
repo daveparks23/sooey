@@ -7,13 +7,21 @@ import 'package:sooey/sprites/sprite_registry.dart';
 void main() {
   group('every sprite in the cast', () {
     test('is well formed', () {
-      // Sprites are hand-authored ASCII, so a miscounted row is by far the
-      // likeliest defect and one that would otherwise show up as a silently
-      // clipped pig.
+      // Collect every failure rather than throwing at the first. The registry
+      // is insertion-ordered and validate() throws, so aborting at the first
+      // bad sprite silently stops checking everything registered after it —
+      // which is most of the cast whenever one sprite is mid-redraw.
+      final problems = <String>[];
       kSpriteRegistry.forEach((name, anim) {
-        anim.a.validate('$name frame 1');
-        anim.b.validate('$name frame 2');
+        for (final (i, sprite) in [anim.a, anim.b].indexed) {
+          try {
+            sprite.validate('$name frame ${i + 1}');
+          } on ArgumentError catch (e) {
+            problems.add('${e.message}');
+          }
+        }
       });
+      expect(problems, isEmpty, reason: problems.join('\n'));
     });
 
     test('draws something', () {

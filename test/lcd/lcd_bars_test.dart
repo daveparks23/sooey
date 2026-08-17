@@ -34,18 +34,25 @@ void main() {
       expect(empty.toAscii(), isNot(full.toAscii()));
     });
 
-    test('clamps a fraction outside 0..1 rather than drawing outside itself', () {
-      final b = LcdBuffer();
-      drawVerticalBar(b, x: 0, y: 0, width: 7, height: 9, fraction: 5);
-      expect(b.get(3, 9), isFalse, reason: 'spilled past the outline');
-    });
+    test(
+      'clamps a fraction outside 0..1 rather than drawing outside itself',
+      () {
+        final b = LcdBuffer();
+        drawVerticalBar(b, x: 0, y: 0, width: 7, height: 9, fraction: 5);
+        expect(b.get(3, 9), isFalse, reason: 'spilled past the outline');
+      },
+    );
   });
 
   group('drawHorizontalBar', () {
     test('fills from the left', () {
       final b = LcdBuffer();
       drawHorizontalBar(b, x: 0, y: 0, width: 22, height: 5, fraction: 0.5);
-      expect(b.get(1, 2), isTrue, reason: 'leftmost interior column fills first');
+      expect(
+        b.get(1, 2),
+        isTrue,
+        reason: 'leftmost interior column fills first',
+      );
       expect(b.get(20, 2), isFalse, reason: 'rightmost fills last');
     });
 

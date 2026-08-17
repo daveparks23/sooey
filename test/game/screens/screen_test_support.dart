@@ -23,26 +23,27 @@ PetState testPet({
   int ageDays = 7,
   DeathCause? deathCause,
 }) {
-  var pet = PetState.newborn(
-    petId: 'pet_test',
-    ownerId: 'uid_test',
-    name: '',
-    nowMillis: nowMillis - ageDays * 86400000,
-    utcOffsetMinutes: 0,
-  ).copyWith(
-    stage: stage,
-    form: form,
-    lastTickAtMillis: nowMillis,
-    fullness: fullness,
-    enrichment: enrichment,
-    comfort: comfort,
-    cleanliness: cleanliness,
-    health: health,
-    weight: weight,
-    isSick: isSick,
-    lightsOn: lightsOn,
-    poops: List.generate(poops, (i) => i),
-  );
+  var pet =
+      PetState.newborn(
+        petId: 'pet_test',
+        ownerId: 'uid_test',
+        name: '',
+        nowMillis: nowMillis - ageDays * 86400000,
+        utcOffsetMinutes: 0,
+      ).copyWith(
+        stage: stage,
+        form: form,
+        lastTickAtMillis: nowMillis,
+        fullness: fullness,
+        enrichment: enrichment,
+        comfort: comfort,
+        cleanliness: cleanliness,
+        health: health,
+        weight: weight,
+        isSick: isSick,
+        lightsOn: lightsOn,
+        poops: List.generate(poops, (i) => i),
+      );
   if (deathCause != null) {
     pet = pet.copyWith(diedAtMillis: nowMillis, deathCause: deathCause);
   }
