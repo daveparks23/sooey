@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'dev/device_dev_page.dart';
 import 'dev/pet_preview_page.dart';
 import 'dev/sprite_editor_page.dart';
 import 'dev/sprite_gallery_page.dart';
+import 'device/device_shell.dart';
 
 void main() {
   runApp(const HogPocketApp());
@@ -10,8 +12,9 @@ void main() {
 
 /// Hog Pocket.
 ///
-/// The home screen is the dev menu for now. M4 replaces it with the device
-/// itself and moves these two behind a hidden route.
+/// `/` is the device. Everything under `/dev` is scaffolding — the fake-clock
+/// harness, the pet preview, the sprite gallery and the editor — and none of it
+/// is reachable from the device itself.
 class HogPocketApp extends StatelessWidget {
   const HogPocketApp({super.key});
 
@@ -29,7 +32,9 @@ class HogPocketApp extends StatelessWidget {
         ),
       ),
       routes: {
-        '/': (_) => const DevMenuPage(),
+        '/': (_) => const DevicePage(),
+        '/dev': (_) => const DevMenuPage(),
+        '/dev/device': (_) => const DeviceDevPage(),
         '/dev/preview': (_) => const PetPreviewPage(),
         '/dev/sprites': (_) => const SpriteGalleryPage(),
         '/dev/editor': (_) => const SpriteEditorPage(),
@@ -55,6 +60,11 @@ class DevMenuPage extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             FilledButton(
+              onPressed: () => Navigator.pushNamed(context, '/dev/device'),
+              child: const Text('Device (fake clock)'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
               onPressed: () => Navigator.pushNamed(context, '/dev/preview'),
               child: const Text('Pet preview'),
             ),
