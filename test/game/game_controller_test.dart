@@ -125,6 +125,15 @@ void main() {
       c.press(Button.b); // reopen
       c.press(Button.b); // slop again, over 90 and refused
       expect(c.blinkingIcon, DeviceIcon.feed);
+
+      // And the refusal leaves the pig looking exactly as the accepted feed
+      // left it. Note this is `eating`, not null — the pose from two presses
+      // ago is still running. The point is that the refusal did not touch it.
+      expect(
+        c.context.transientPose,
+        PetPose.eating,
+        reason: 'a refusal must not touch the pose the accepted feed set',
+      );
     });
 
     test('stop blinking after a moment', () {
@@ -143,10 +152,24 @@ void main() {
       final clock = FakeClock(kRefNoon);
       final c = GameController(clock: clock, utcOffsetMinutes: 0)
         ..press(Button.b);
-      c.press(Button.a);
-      c.press(Button.a); // wallow
+
+      // Wallowing: refused. An egg has no mud, no mouth and no mess.
+      while (c.litIcon != DeviceIcon.wallow) {
+        c.press(Button.a);
+      }
       c.press(Button.b);
       expect(c.blinkingIcon, DeviceIcon.wallow);
+
+      // The pen light: the one thing that works before it hatches. Without
+      // this half the test would pass even if the light were refused too.
+      clock.advance(kRefusalBlinkMillis + 1);
+      final litBefore = c.pet.lightsOn;
+      while (c.litIcon != DeviceIcon.light) {
+        c.press(Button.a);
+      }
+      c.press(Button.b);
+      expect(c.pet.lightsOn, !litBefore, reason: 'the light should toggle');
+      expect(c.blinkingIcon, isNull, reason: 'the light was not refused');
     });
   });
 
