@@ -3,12 +3,14 @@ import 'package:hog_sim/hog_sim.dart';
 import '../lcd/lcd_sprite.dart';
 import 'adult_face_sprites.dart';
 import 'adult_form_sprites.dart';
+import 'icon_sprites.dart';
 import 'piglet_face_sprites.dart';
 import 'prop_sprites.dart';
 import 'wallow_face_sprites.dart';
 
 export 'adult_face_sprites.dart';
 export 'adult_form_sprites.dart';
+export 'icon_sprites.dart';
 export 'piglet_face_sprites.dart';
 export 'prop_sprites.dart';
 export 'wallow_face_sprites.dart';
@@ -65,6 +67,7 @@ const _adult = 'lib/sprites/adult_face_sprites.dart';
 const _forms = 'lib/sprites/adult_form_sprites.dart';
 const _wallows = 'lib/sprites/wallow_face_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
+const _icons = 'lib/sprites/icon_sprites.dart';
 
 /// Every animation in the game, by name. Powers the sprite editor's load menu
 /// and the tests that validate the whole cast.
@@ -274,6 +277,61 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     dartName: 'kGrave',
     sourceFile: _props,
   ),
+
+  // --- Icons ----------------------------------------------------------------
+  // Registered so the well-formedness sweep covers them and the sprite editor
+  // can load them. They are still, which is why the animation sweeps iterate
+  // kCreatureKeys rather than filtering this map.
+  'icon.feed': SpriteAnim.still(
+    kFeedIcon,
+    dartName: 'kFeedIcon',
+    sourceFile: _icons,
+  ),
+  'icon.wallow': SpriteAnim.still(
+    kWallowIcon,
+    dartName: 'kWallowIcon',
+    sourceFile: _icons,
+  ),
+  'icon.play': SpriteAnim.still(
+    kPlayIcon,
+    dartName: 'kPlayIcon',
+    sourceFile: _icons,
+  ),
+  'icon.meds': SpriteAnim.still(
+    kMedsIcon,
+    dartName: 'kMedsIcon',
+    sourceFile: _icons,
+  ),
+  'icon.clean': SpriteAnim.still(
+    kCleanIcon,
+    dartName: 'kCleanIcon',
+    sourceFile: _icons,
+  ),
+  'icon.stats': SpriteAnim.still(
+    kStatsIcon,
+    dartName: 'kStatsIcon',
+    sourceFile: _icons,
+  ),
+  'icon.light': SpriteAnim.still(
+    kLightIcon,
+    dartName: 'kLightIcon',
+    sourceFile: _icons,
+  ),
+  'icon.treat': SpriteAnim.still(
+    kTreatIcon,
+    dartName: 'kTreatIcon',
+    sourceFile: _icons,
+  ),
+  'icon.weight': SpriteAnim.still(
+    kWeightIcon,
+    dartName: 'kWeightIcon',
+    sourceFile: _icons,
+  ),
+  'prop.mound': SpriteAnim.still(
+    kMound,
+    dartName: 'kMound',
+    sourceFile: _props,
+  ),
 };
 
 /// Every pose a creature build is required to provide.
@@ -289,6 +347,14 @@ const List<String> kRequiredPoses = [
 
 /// Every creature build in the game.
 const List<String> kBuildKeys = ['piglet', 'farmHog', 'prizeHog', 'runt'];
+
+/// Every registry key that is a creature — the things that must animate and
+/// must stay on their floor line. Props, icons and crests are none of those.
+List<String> get kCreatureKeys => [
+  'egg',
+  for (final build in kBuildKeys)
+    for (final pose in kRequiredPoses) '$build.$pose',
+];
 
 /// The registry key for a creature's build — the thing that owns a face.
 ///

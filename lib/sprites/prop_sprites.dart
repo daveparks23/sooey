@@ -100,3 +100,10 @@ const kEgg2 = LcdSprite(32, 16, [
   '................................',
   '................................',
 ]);
+
+/// A mound of earth with a truffle under it. Two of these are the whole set
+/// dressing of the truffle hunt.
+///
+/// Note the transparent surround: a mound is composited over the pig after the
+/// pig is drawn, so it must not punch a hole in the ground around itself.
+const kMound = LcdSprite(5, 3, [' .#. ', '.###.', '#####']);

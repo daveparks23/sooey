@@ -41,13 +41,14 @@ void main() {
   group('creature animations', () {
     test('move between their two frames', () {
       // A creature whose frames are identical is a pig that looks like a
-      // rendering bug. Props are allowed to be still; creatures are not.
-      for (final entry in kSpriteRegistry.entries) {
-        if (entry.key.startsWith('prop.')) continue;
+      // rendering bug. Iterate the creatures rather than filtering the registry
+      // by prefix, so adding icons or crests cannot quietly narrow this.
+      for (final key in kCreatureKeys) {
+        final anim = kSpriteRegistry[key]!;
         expect(
-          entry.value.a.rows.join(),
-          isNot(entry.value.b.rows.join()),
-          reason: '${entry.key} does not animate',
+          anim.a.rows.join(),
+          isNot(anim.b.rows.join()),
+          reason: '$key does not animate',
         );
       }
     });
@@ -63,13 +64,13 @@ void main() {
         return -1;
       }
 
-      for (final entry in kSpriteRegistry.entries) {
-        if (entry.key.startsWith('prop.')) continue;
-        if (entry.key.endsWith('.wallowing')) continue;
+      for (final key in kCreatureKeys) {
+        if (key.endsWith('.wallowing')) continue;
+        final anim = kSpriteRegistry[key]!;
         expect(
-          lowestLitRow(entry.value.a),
-          lowestLitRow(entry.value.b),
-          reason: '${entry.key} shifts its floor line between frames',
+          lowestLitRow(anim.a),
+          lowestLitRow(anim.b),
+          reason: '$key shifts its floor line between frames',
         );
       }
     });
