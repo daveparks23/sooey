@@ -3,6 +3,7 @@ import 'package:hog_sim/hog_sim.dart';
 import '../lcd/lcd_sprite.dart';
 import 'adult_face_sprites.dart';
 import 'adult_form_sprites.dart';
+import 'crest_sprites.dart';
 import 'icon_sprites.dart';
 import 'piglet_face_sprites.dart';
 import 'prop_sprites.dart';
@@ -10,6 +11,7 @@ import 'wallow_face_sprites.dart';
 
 export 'adult_face_sprites.dart';
 export 'adult_form_sprites.dart';
+export 'crest_sprites.dart';
 export 'icon_sprites.dart';
 export 'piglet_face_sprites.dart';
 export 'prop_sprites.dart';
@@ -68,6 +70,7 @@ const _forms = 'lib/sprites/adult_form_sprites.dart';
 const _wallows = 'lib/sprites/wallow_face_sprites.dart';
 const _props = 'lib/sprites/prop_sprites.dart';
 const _icons = 'lib/sprites/icon_sprites.dart';
+const _crests = 'lib/sprites/crest_sprites.dart';
 
 /// Every animation in the game, by name. Powers the sprite editor's load menu
 /// and the tests that validate the whole cast.
@@ -331,6 +334,63 @@ const Map<String, SpriteAnim> kSpriteRegistry = {
     kMound,
     dartName: 'kMound',
     sourceFile: _props,
+  ),
+
+  // --- Crests and ribbons ---------------------------------------------------
+  'crest.leaf': SpriteAnim.still(
+    kCrestLeaf,
+    dartName: 'kCrestLeaf',
+    sourceFile: _crests,
+  ),
+  'crest.star': SpriteAnim.still(
+    kCrestStar,
+    dartName: 'kCrestStar',
+    sourceFile: _crests,
+  ),
+  'crest.horseshoe': SpriteAnim.still(
+    kCrestHorseshoe,
+    dartName: 'kCrestHorseshoe',
+    sourceFile: _crests,
+  ),
+  'crest.clover': SpriteAnim.still(
+    kCrestClover,
+    dartName: 'kCrestClover',
+    sourceFile: _crests,
+  ),
+  'crest.crown': SpriteAnim.still(
+    kCrestCrown,
+    dartName: 'kCrestCrown',
+    sourceFile: _crests,
+  ),
+  'crest.moon': SpriteAnim.still(
+    kCrestMoon,
+    dartName: 'kCrestMoon',
+    sourceFile: _crests,
+  ),
+  'crest.anchor': SpriteAnim.still(
+    kCrestAnchor,
+    dartName: 'kCrestAnchor',
+    sourceFile: _crests,
+  ),
+  'crest.bolt': SpriteAnim.still(
+    kCrestBolt,
+    dartName: 'kCrestBolt',
+    sourceFile: _crests,
+  ),
+  'rosette.prizeHog': SpriteAnim.still(
+    kPrizeRosette,
+    dartName: 'kPrizeRosette',
+    sourceFile: _crests,
+  ),
+  'rosette.farmHog': SpriteAnim.still(
+    kFarmRosette,
+    dartName: 'kFarmRosette',
+    sourceFile: _crests,
+  ),
+  'rosette.runt': SpriteAnim.still(
+    kRuntRosette,
+    dartName: 'kRuntRosette',
+    sourceFile: _crests,
   ),
 };
 
