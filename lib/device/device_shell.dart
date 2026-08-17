@@ -78,10 +78,15 @@ class DeviceShell extends StatelessWidget {
   }
 }
 
-/// Arrow keys and enter map onto the three buttons.
+/// The keyboard, mapped onto the three buttons.
 ///
-/// A key is a physical button by another name, which is why this does not
-/// contradict spec §6. Nothing on the glass or the bezel is tappable.
+/// A cycles: left arrow or `a`. B confirms: enter, space or `b`. C cancels:
+/// right arrow or `c`. The letters and space are there because this runs in a
+/// browser as often as on a phone, and a device with three buttons should not
+/// require you to find the arrow keys.
+///
+/// A key is a physical button by another name, which is why none of this
+/// contradicts spec §6. Nothing on the glass or the bezel is tappable.
 Button? _buttonFor(LogicalKeyboardKey key) {
   if (key == LogicalKeyboardKey.arrowLeft || key == LogicalKeyboardKey.keyA) {
     return Button.a;
