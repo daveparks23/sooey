@@ -2,7 +2,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hog_sim/hog_sim.dart';
 import 'package:sooey/game/frame_composer.dart';
 import 'package:sooey/game/screens/device_screen.dart';
+import 'package:sooey/game/screens/feed_menu.dart';
 import 'package:sooey/game/screens/home_screen.dart';
+import 'package:sooey/game/screens/stats_screen.dart';
+import 'package:sooey/game/screens/truffle_hunt.dart';
 import 'package:sooey/sprites/sprite_registry.dart';
 
 import 'screen_test_support.dart';
@@ -63,6 +66,26 @@ void main() {
         expect(out, isA<Act>(), reason: icon.name);
         expect((out as Act).action, action, reason: icon.name);
       });
+    });
+  });
+
+  group('B opens the three screens that need one', () {
+    test('feed opens the submenu', () {
+      final s = HomeScreen()..selected = DeviceIcon.feed;
+      final out = drive(s, 'B', testContext()).single;
+      expect((out as Push).screen, isA<FeedMenu>());
+    });
+
+    test('play opens the truffle hunt', () {
+      final s = HomeScreen()..selected = DeviceIcon.play;
+      final out = drive(s, 'B', testContext()).single;
+      expect((out as Push).screen, isA<TruffleHunt>());
+    });
+
+    test('stats opens the status pages', () {
+      final s = HomeScreen()..selected = DeviceIcon.stats;
+      final out = drive(s, 'B', testContext()).single;
+      expect((out as Push).screen, isA<StatsScreen>());
     });
   });
 

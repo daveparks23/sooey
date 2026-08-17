@@ -3,6 +3,9 @@ import 'package:hog_sim/hog_sim.dart';
 import '../../lcd/lcd_buffer.dart';
 import '../frame_composer.dart';
 import 'device_screen.dart';
+import 'feed_menu.dart';
+import 'stats_screen.dart';
+import 'truffle_hunt.dart';
 
 /// The device at rest: the pig on the matrix, the strip live around it.
 ///
@@ -30,10 +33,9 @@ class HomeScreen extends DeviceScreen {
         final icon = selected;
         if (icon == null) return const Stay();
         return switch (icon) {
-          // Task 8/9/10 restore these three.
-          DeviceIcon.feed => const Stay(),
-          DeviceIcon.play => const Stay(),
-          DeviceIcon.stats => const Stay(),
+          DeviceIcon.feed => Push(FeedMenu()),
+          DeviceIcon.play => Push(TruffleHunt()),
+          DeviceIcon.stats => Push(StatsScreen()),
           DeviceIcon.wallow => const Act(PetAction.wallow),
           DeviceIcon.clean => const Act(PetAction.clean),
           DeviceIcon.meds => const Act(PetAction.meds),
