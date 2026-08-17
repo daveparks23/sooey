@@ -15,12 +15,33 @@ void main() {
       expect(glassDotSize(const Size(320, 320)), 10);
     });
 
-    test('is always whole pixels', () {
-      for (var w = 64.0; w < 1200; w += 0.5) {
-        final d = glassDotSize(Size(w, w));
-        expect(d, d.toInt(), reason: 'width $w');
-      }
-    });
+    test(
+      'never overflows the box, and never leaves a whole dot on the table',
+      () {
+        // Not "is always whole pixels" — `glassDotSize` returns an `int`, so
+        // comparing it to its own `toInt()` is `expect(d, d)` and passes for any
+        // implementation, including one that ignores its argument entirely.
+        //
+        // This checks the property that actually matters. The sweep starts at 64
+        // because that is exactly where 64 ~/ 32 reaches kMinDotSize; below it
+        // the clamp legitimately overflows the box and the fit assertion would
+        // fail for the wrong reason.
+        for (var w = 64.0; w < 1200; w += 7) {
+          final d = glassDotSize(Size(w, w));
+          expect(d * kGlassWidth, lessThanOrEqualTo(w), reason: 'width at $w');
+          expect(
+            d * kGlassHeight,
+            lessThanOrEqualTo(w),
+            reason: 'height at $w',
+          );
+          expect(
+            (d + 1) * kGlassWidth > w || (d + 1) * kGlassHeight > w,
+            isTrue,
+            reason: 'left a whole dot unused at $w',
+          );
+        }
+      },
+    );
 
     test('takes whichever constraint binds', () {
       expect(glassDotSize(const Size(640, 160)), 5);
