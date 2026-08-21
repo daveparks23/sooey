@@ -94,6 +94,21 @@ class GameController extends ChangeNotifier {
   }
 
   void press(Button b) {
+    // Actions apply on top of a current pet, never a stale one — see the
+    // contract on applyAction. A press can arrive long after the last tick.
+    _pet = advance(_pet, _clock.nowMillis);
+
+    // A press that only just discovered death (the advance above crossed
+    // into it) has to be swallowed rather than handed to a screen that was
+    // not built for a dead pet. But once the death screen is already up, a
+    // press is the *restart* — `DeathScreen.handle` still has to run, or B
+    // could never bring a new pet back. `_pet.isDead` alone cannot tell
+    // those two cases apart, so this also checks which screen is on top.
+    if (_pet.isDead && _stack.last is! DeathScreen) {
+      _stack = [DeathScreen()];
+      notifyListeners();
+      return;
+    }
     _apply(screen.handle(b, context));
     notifyListeners();
   }

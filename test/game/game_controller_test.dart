@@ -98,6 +98,53 @@ void main() {
       expect(c.pet.cleanliness, 100);
     });
 
+    test(
+      'presses see decay that happened since the last tick, not stale needs',
+      () {
+        // applyAction's contract: the caller advances the simulation to
+        // nowMillis first, then applies the action on top. Every other test
+        // in this file hides that because it ticks immediately before
+        // pressing; here the clock runs a long way forward with no tick at
+        // all, so the press itself is the first thing to see that elapsed
+        // time.
+        final clock = FakeClock(kRefNoon);
+        final c = GameController(clock: clock, utcOffsetMinutes: 0)
+          ..press(Button.b); // accept the opening crest
+
+        // Hatch, barely — just past the egg's fifteen minutes, so fullness
+        // is still close to its newborn 100 and nowhere near the refusal
+        // threshold. This is the fullness a buggy press() would go on using
+        // forever, because nothing after this tick() ever advances it again.
+        clock.advance(20 * 60 * 1000);
+        c.tick();
+        expect(c.pet.stage, Stage.piglet, reason: 'setup should have hatched');
+        expect(
+          c.pet.fullness,
+          greaterThan(kSlopRefusedAbove),
+          reason: 'setup should start above the refusal threshold',
+        );
+
+        // Let a long stretch pass with no tick at all. The pig's *true*
+        // fullness — what advance() would compute right now — has decayed
+        // well below the threshold, but `c.pet` itself stays exactly where
+        // the last tick left it until something calls advance() again.
+        clock.advance(12 * _hour);
+
+        c.press(Button.a); // cursor to feed
+        c.press(Button.b); // open the submenu
+        c.press(Button.b); // slop
+
+        expect(
+          c.blinkingIcon,
+          isNull,
+          reason:
+              'fullness had decayed below the refusal threshold by the time '
+              'the press landed, so slop should have been accepted rather '
+              'than refused against a stale, still-high value',
+        );
+      },
+    );
+
     test('wallowing comforts the pig and dirties it, as spec 7.2 wants', () {
       final (c, _) = hatched();
       c.press(Button.a);
