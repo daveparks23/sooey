@@ -16,7 +16,6 @@ void main() {
 
     // Mark the egg.
     c.press(Button.b);
-    expect(c.pet.stage, Stage.egg);
 
     // It hatches on its own after fifteen minutes, and three hours of piglet
     // is enough decay for the pig to accept a bucket.

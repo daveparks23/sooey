@@ -8,7 +8,7 @@ design authority, but several decisions have since overridden it — see
 [Deviations](#deviations-from-the-spec). Where this document and the spec
 disagree, this document is what the code does.
 
-**Status: M1, M2 and M3 are complete and verified. M4 is next.**
+**Status: M1 through M4 are complete and verified. M5 is next.**
 
 ---
 
@@ -37,24 +37,34 @@ bundle — which looks exactly like your change having no effect. `scripts/dev.s
 keeps flutter's stdin on a FIFO and writes a hot restart into it whenever
 anything under `lib/` changes. Use it; this cost an hour once already.
 
-Routes, all dev-only for now:
+Routes:
 
 | Route | What it is |
 | --- | --- |
-| `/dev/preview` | Drives the real composer from a pet you can poke at. Start here. |
+| `/` | The device itself, on the real `SystemClock`. |
+| `/dev` | The dev menu — links to everything below. |
+| `/dev/device` | The same device widget as `/`, mounted on a `FakeClock` with speed and jump controls, for watching the long arcs by hand. |
+| `/dev/preview` | Drives the real composer from a pet you can poke at. Start here for sprite work. |
 | `/dev/sprites` | Every sprite animating at 600ms, with pause and step |
 | `/dev/editor` | 32×16 grid editor that emits paste-ready Dart |
+
+Only `/` is meant for playing the game; everything under `/dev` is
+scaffolding and is not reachable from the device itself.
 
 ## Verifying everything
 
 ```bash
 cd packages/hog_sim && dart test        # 119 — the simulation
 cd packages/hog_sim && dart test -p chrome   # 114 — same suite under dart2js
-flutter test                            # 79  — renderer, sprites, composer
+flutter test                            # 220 — renderer, sprites, composer, the M4 input machine
 cd functions && npm test                # 14  — the JS bridge conformance
 ```
 
-All four must pass. The `-p chrome` run is not optional — see
+All four must pass, with one standing exception: `flutter test` carries one
+known failure, `every sprite in the cast is well formed` on `prop.grave` —
+Dave's grave redraw is mid-flight and not yet the declared size. Expect
+220 passes and that one failure until it lands; anything else red is a
+real regression. The `-p chrome` run is not optional — see
 [Determinism](#determinism-the-thing-most-likely-to-bite-you).
 
 ---
@@ -214,8 +224,8 @@ runt       idle happy sad sick eating sleeping wallowing
 
 Plus `egg` and the props (poop, heart, sick, call, lightOff, grave).
 
-`kHeart` is registered but not yet drawn — it is the celebration after a good
-truffle-hunt round, which lands in M4.
+`kHeart` blinks over the mound after a won round of the truffle hunt —
+the celebration it was registered for, landed with M4.
 
 Design notes worth keeping:
 
@@ -255,8 +265,8 @@ database *creation*. Hosting also still points at `public/` rather than
 | **M1** Simulation | **done** | 6h in one call == 72 × 5min, incl. across sleep, stage change and death mid-window |
 | **M2** Bridge | **done** | 92/92 VM vectors replay identically through dart2js in Node |
 | **M3** Renderer | **done** | crisp at three widths with no fractional dots; golden frames per creature state |
-| **M4** Local loop | **next** | |
-| **M5** Persistence | | anon auth, callables, rules, emulator, debug clock, seeder |
+| **M4** Local loop | **done** | a pet can be fed, cleaned and played with, and dies if left alone, entirely on the strict three-button interface |
+| **M5** Persistence | **next** | anon auth, callables, rules, emulator, debug clock, seeder |
 | **M6** Life cycle | | transitions, three forms, death, tombstones, new pet |
 
 Out of v1: push notifications, account linking, live deploy, discipline and
@@ -276,7 +286,8 @@ Build:
   play, meds, clean, stats, light
 - The feed submenu — slop or treat
 - Truffle hunt, best of five, resolved client-side
-- Hatch screen with name entry (max 12 chars), and the death screen
+- The crest picker (eight emblems, no text anywhere on the device) and the death
+  screen
 - The device shell: `LcdTheme.shell` `#E3A6B5`, border and buttons `#C4899A`
 
 Nothing persisted — a pet that vanishes on reload is fine for this milestone and
@@ -287,14 +298,14 @@ keeps the input state machine separate from the Firestore work in M5.
 `/dev/preview` already proves the display half end to end. The missing piece is
 input and state.
 
-### One open question for Dave
-
-The spec's device is a **fixed three-button** interface — no tapping the screen,
-no tapping icons directly. That constraint is a lot of the charm, but it means
-every action is "press A four times, then B". He was asked whether he wants that
-faithfully, or whether icons should also be directly tappable with the three
-buttons kept as the primary path. **He has not answered yet.** Ask before
-building the input layer, since it changes its shape.
+Before the input layer was built, Dave was asked whether the spec's **fixed
+three-button** interface — no tapping the screen, no tapping icons directly —
+should be built faithfully, or whether icons should also be directly tappable
+with the three buttons kept as the primary path. He confirmed strict three
+buttons. Nothing on the glass or the shell responds to a tap; that answer is
+what shaped the icon strip as fixed glass segments rather than a tappable
+menu, and the crest picker as a cycle-and-confirm rather than a grid you reach
+into.
 
 ---
 
