@@ -37,9 +37,15 @@ void main() {
     test(
       'clamps a fraction outside 0..1 rather than drawing outside itself',
       () {
-        final b = LcdBuffer();
-        drawVerticalBar(b, x: 0, y: 0, width: 7, height: 9, fraction: 5);
-        expect(b.get(3, 9), isFalse, reason: 'spilled past the outline');
+        // Vertical bars fill upward, so asserting "nothing below the bar"
+        // tests the side the overflow never reaches. Compare against a full
+        // bar instead: with the clamp removed, fraction 5 writes far above
+        // the outline and the two frames diverge.
+        final over = LcdBuffer();
+        final full = LcdBuffer();
+        drawVerticalBar(over, x: 0, y: 4, width: 7, height: 9, fraction: 5);
+        drawVerticalBar(full, x: 0, y: 4, width: 7, height: 9, fraction: 1);
+        expect(over.toAscii(), full.toAscii());
       },
     );
   });
@@ -62,6 +68,22 @@ void main() {
       expect(b.get(0, 0), isTrue);
       expect(b.get(21, 4), isTrue);
     });
+
+    test(
+      'clamps a fraction outside 0..1 rather than drawing outside itself',
+      () {
+        // Same shape as the vertical case: horizontal bars fill from the
+        // left, so there are columns to the right of the outline for an
+        // unclamped fraction to escape into. Compare against a full bar
+        // rather than asserting an untouched corner, which an unclamped fill
+        // never reaches anyway.
+        final over = LcdBuffer();
+        final full = LcdBuffer();
+        drawHorizontalBar(over, x: 4, y: 0, width: 22, height: 5, fraction: 5);
+        drawHorizontalBar(full, x: 4, y: 0, width: 22, height: 5, fraction: 1);
+        expect(over.toAscii(), full.toAscii());
+      },
+    );
   });
 
   group('drawPips', () {
