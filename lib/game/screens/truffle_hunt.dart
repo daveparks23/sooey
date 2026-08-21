@@ -118,6 +118,17 @@ class TruffleHunt extends DeviceScreen {
   void _drawTally(LcdBuffer buffer) {
     for (var i = 0; i < kPlayRounds; i++) {
       final x = _tallyX + i * 3;
+
+      // Clear the slot first. An adult's ears light row 0 under slots 0, 3
+      // and 4, so an unplayed slot would otherwise show the ear through and
+      // read as a loss — and the whole point of three distinct marks is that
+      // the player can count their losses.
+      for (var dy = 0; dy < 2; dy++) {
+        buffer
+          ..set(x, dy, false)
+          ..set(x + 1, dy, false);
+      }
+
       switch (results[i]) {
         case true:
           buffer
