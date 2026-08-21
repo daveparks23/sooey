@@ -5,6 +5,8 @@ import 'package:hog_sim/hog_sim.dart';
 import 'package:sooey/game/game_constants.dart';
 import 'package:sooey/game/screens/device_screen.dart';
 import 'package:sooey/game/screens/truffle_hunt.dart';
+import 'package:sooey/lcd/lcd_buffer.dart';
+import 'package:sooey/sprites/sprite_registry.dart';
 
 import 'screen_test_support.dart';
 
@@ -112,22 +114,101 @@ void main() {
       expect(rows[14].substring(2, 7), '#####', reason: 'mound row 3 erased');
     });
 
-    test('moves the pig off centre once it has committed', () {
-      final hunt = TruffleHunt(random: _AlwaysLeft());
-      final waiting = hunt.compose(testContext(), 0).toAscii();
-      hunt.handle(Button.a, testContext());
-      expect(hunt.compose(testContext(), 0).toAscii(), isNot(waiting));
+    test('moves the pig exactly kHuntSlide dots off centre once it has '
+        'committed', () {
+      // A whole-frame inequality would pass even if the pig moved by the
+      // wrong amount, or didn't move at all and only the pose or the tally
+      // changed — handle() changes all three at once. Isolate the offset by
+      // reconstructing the same pose with no slide, from the same building
+      // blocks compose() itself uses, and checking the real frame against it
+      // shifted by exactly kHuntSlide.
+      final hunt = TruffleHunt(random: _AlwaysLeft())
+        ..handle(Button.a, testContext());
+      const frameIndex = 1;
+      final actual = hunt
+          .compose(testContext(), frameIndex)
+          .toAscii()
+          .split('\n');
+
+      final pet = testContext().pet;
+      final centred = LcdBuffer()
+        ..blit(
+          creatureAnim(
+            stage: pet.stage,
+            form: pet.form,
+            pose: PetPose.eating,
+          ).frame(frameIndex),
+          0,
+          0,
+        );
+      final expectedRow = centred.toAscii().split('\n')[7];
+
+      // Deliberately literal rather than `kHuntSlide`: if the two were tied
+      // together, a bug that zeroed the constant would zero both sides of
+      // this comparison at once and the test would still pass. (Proved by
+      // hand: with `kHuntSlide` forced to 0 and this literal left at 9, the
+      // pig visibly stops moving and the assertion below fails; tying the
+      // shift to the constant instead left it passing regardless.) The
+      // assertion just below keeps this literal honest against the real
+      // constant.
+      const expectedSlide = 9;
+      expect(
+        kHuntSlide,
+        expectedSlide,
+        reason: 'kHuntSlide changed — update the literal shift above to match',
+      );
+
+      // Row 7 sits inside the head, clear of the tally (rows 0-1), the heart
+      // (row 3) and the mounds (rows 12-14), so nothing else this frame
+      // draws can explain a match or a mismatch here — only the pig's own
+      // horizontal offset can.
+      final shifted = [
+        for (var x = 0; x < 32; x++)
+          x + expectedSlide < 32 ? expectedRow[x + expectedSlide] : '.',
+      ].join();
+      expect(
+        actual[7],
+        shifted,
+        reason:
+            'the committed pig should sit exactly kHuntSlide dots left '
+            'of where it sits centred',
+      );
     });
 
     test('tells an unplayed round from a lost one', () {
-      // Both would otherwise be blank, and the player would lose count.
-      final fresh = TruffleHunt(random: _AlwaysLeft());
-      final lost = TruffleHunt(random: _AlwaysLeft())
-        ..handle(Button.c, testContext());
-      expect(
-        fresh.compose(testContext(), 0).toAscii(),
-        isNot(lost.compose(testContext(), 0).toAscii()),
-      );
+      // Compose from a hunt that never calls handle() at all, so pigWentLeft
+      // stays null throughout and the pig is centred and idle in every one
+      // of the three frames below — only `results[0]` (set directly, since
+      // it is a public field meant for exactly this) varies. A whole-frame
+      // inequality between "fresh" and "one loss" would pass even if the
+      // tally drew nothing at all and the difference came only from a stray
+      // pixel elsewhere, which is exactly how this test used to pass with
+      // the `case false:` branch deleted.
+      const x = 10; // _tallyX, slot 0
+      final unplayedRow0 = TruffleHunt(
+        random: _AlwaysLeft(),
+      ).compose(testContext(), 0).toAscii().split('\n')[0];
+      final unplayedRow1 = TruffleHunt(
+        random: _AlwaysLeft(),
+      ).compose(testContext(), 0).toAscii().split('\n')[1];
+      expect(unplayedRow0[x], '.', reason: 'unplayed: nothing at (x,0)');
+      expect(unplayedRow0[x + 1], '.', reason: 'unplayed: nothing at (x+1,0)');
+      expect(unplayedRow1[x], '.', reason: 'unplayed: nothing at (x,1)');
+      expect(unplayedRow1[x + 1], '.', reason: 'unplayed: nothing at (x+1,1)');
+
+      final lost = TruffleHunt(random: _AlwaysLeft())..results[0] = false;
+      final lostFrame = lost.compose(testContext(), 0).toAscii().split('\n');
+      expect(lostFrame[0][x], '#', reason: 'loss: a single dot at (x,0)');
+      expect(lostFrame[0][x + 1], '.', reason: 'loss: nothing at (x+1,0)');
+      expect(lostFrame[1][x], '.', reason: 'loss: nothing at (x,1)');
+      expect(lostFrame[1][x + 1], '.', reason: 'loss: nothing at (x+1,1)');
+
+      final won = TruffleHunt(random: _AlwaysLeft())..results[0] = true;
+      final wonFrame = won.compose(testContext(), 0).toAscii().split('\n');
+      expect(wonFrame[0][x], '#', reason: 'win: (x,0) lit');
+      expect(wonFrame[0][x + 1], '#', reason: 'win: (x+1,0) lit');
+      expect(wonFrame[1][x], '#', reason: 'win: (x,1) lit');
+      expect(wonFrame[1][x + 1], '#', reason: 'win: (x+1,1) lit');
     });
   });
 }
