@@ -90,6 +90,17 @@ class Restart extends Transition {
   const Restart();
 }
 
+/// The screen knows this cannot work and says so, without touching the pet.
+///
+/// A screen may read the pet; it may not mutate it. This is how it declines
+/// something the simulation would only refuse after the fact — the truffle
+/// hunt would otherwise play five full rounds against an egg before finding
+/// out.
+class Refused extends Transition {
+  const Refused(this.icon);
+  final DeviceIcon icon;
+}
+
 /// One screen of the device.
 ///
 /// Not `sealed`: Dart only allows that when every subtype is in the same

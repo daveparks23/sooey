@@ -34,7 +34,15 @@ class HomeScreen extends DeviceScreen {
         if (icon == null) return const Stay();
         return switch (icon) {
           DeviceIcon.feed => Push(FeedMenu()),
-          DeviceIcon.play => Push(TruffleHunt()),
+          // applyMinigame only refuses `notHatched` after five full rounds
+          // are played, so without this an egg would trot to a mound and
+          // snuffle five times before finding out it cannot play. Home
+          // otherwise has no code that knows what an egg is; this is that
+          // one exception, for the one icon that pushes rather than acts.
+          DeviceIcon.play =>
+            ctx.pet.stage == Stage.egg
+                ? const Refused(DeviceIcon.play)
+                : Push(TruffleHunt()),
           DeviceIcon.stats => Push(StatsScreen()),
           DeviceIcon.wallow => const Act(PetAction.wallow),
           DeviceIcon.clean => const Act(PetAction.clean),

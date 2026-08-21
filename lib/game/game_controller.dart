@@ -153,6 +153,11 @@ class GameController extends ChangeNotifier {
 
       case Restart():
         _restart();
+
+      case Refused(:final icon):
+        // The screen already knows this cannot work — no pet to touch, no
+        // pop, just the same blink a refusal from applyAction would give.
+        _blink(icon);
     }
   }
 

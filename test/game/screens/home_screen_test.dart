@@ -89,6 +89,26 @@ void main() {
     });
   });
 
+  group('play against an egg', () {
+    // applyMinigame only refuses `notHatched` after five full rounds are
+    // played, so without a refusal here an egg would trot to a mound and
+    // snuffle five times before the game admits it could never have worked.
+    test('is refused rather than pushed, and blinks the play icon', () {
+      final s = HomeScreen()..selected = DeviceIcon.play;
+      final ctx = testContext(pet: testPet(stage: Stage.egg, ageDays: 0));
+      final out = drive(s, 'B', ctx).single;
+      expect(out, isA<Refused>());
+      expect((out as Refused).icon, DeviceIcon.play);
+    });
+
+    test('is pushed once the pig has hatched', () {
+      final s = HomeScreen()..selected = DeviceIcon.play;
+      final ctx = testContext(pet: testPet(stage: Stage.piglet));
+      final out = drive(s, 'B', ctx).single;
+      expect((out as Push).screen, isA<TruffleHunt>());
+    });
+  });
+
   group('the frame', () {
     test('is the pig, drawn by the composer that is already tested', () {
       final ctx = testContext();
