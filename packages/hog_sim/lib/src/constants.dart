@@ -158,17 +158,19 @@ const Map<String, double> kFormSicknessMultiplier = {
 
 /// Mistake bands that decide the adult form, and the lifespan each band buys.
 /// Within a band, fewer mistakes means a longer life; the exact day is fixed at
-/// the piglet→adult transition and stored as `expiresAt`.
+/// the piglet->adult transition and stored as `expiresAt`.
 ///
-/// Scaled 1.5x from the spec's 3 / 9 / 25. Those were tuned for a 48h shoat
-/// stage; the judgment now runs over the full 72h childhood, so leaving them
-/// alone would have made a prize hog far harder to earn without anyone
-/// deciding that it should be.
-const int kPrizeHogMaxMistakes = 5;
-const int kFarmHogMaxMistakes = 14;
+/// Scaled down to the range a pig can reach and survive. A mistake costs 18
+/// health and health returns at 0.2 a tick, so an 864-tick childhood affords
+/// about 8 of them; the previous bands of 5 / 14 / 38 put the whole runt band
+/// past the point where the pig is already dead, and every one of the four
+/// deliberate-neglect policies measured during design topped out at 8.
+/// See life-cycle-harness-design.md.
+const int kPrizeHogMaxMistakes = 2;
+const int kFarmHogMaxMistakes = 5;
 
 /// Mistake count at which the runt's lifespan bottoms out.
-const int kRuntWorstMistakes = 38;
+const int kRuntWorstMistakes = 8;
 
 const Map<String, (int, int)> kFormLifespanDays = {
   'prizeHog': (18, 20),

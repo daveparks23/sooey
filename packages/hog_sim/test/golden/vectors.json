@@ -2250,7 +2250,7 @@
         "pendingPoopTicks": [],
         "needZeroSinceTick": {},
         "careMistakes": 0,
-        "stageCareMistakes": 5,
+        "stageCareMistakes": 2,
         "lastPlayedAtMillis": null,
         "diedAtMillis": null,
         "deathCause": null
@@ -2312,7 +2312,7 @@
         "pendingPoopTicks": [],
         "needZeroSinceTick": {},
         "careMistakes": 0,
-        "stageCareMistakes": 6,
+        "stageCareMistakes": 3,
         "lastPlayedAtMillis": null,
         "diedAtMillis": null,
         "deathCause": null
@@ -2374,7 +2374,7 @@
         "pendingPoopTicks": [],
         "needZeroSinceTick": {},
         "careMistakes": 0,
-        "stageCareMistakes": 14,
+        "stageCareMistakes": 5,
         "lastPlayedAtMillis": null,
         "diedAtMillis": null,
         "deathCause": null
@@ -2436,7 +2436,7 @@
         "pendingPoopTicks": [],
         "needZeroSinceTick": {},
         "careMistakes": 0,
-        "stageCareMistakes": 15,
+        "stageCareMistakes": 6,
         "lastPlayedAtMillis": null,
         "diedAtMillis": null,
         "deathCause": null
@@ -2560,7 +2560,7 @@
         "pendingPoopTicks": [],
         "needZeroSinceTick": {},
         "careMistakes": 21,
-        "stageCareMistakes": 4,
+        "stageCareMistakes": 2,
         "lastPlayedAtMillis": null,
         "diedAtMillis": null,
         "deathCause": null
@@ -2572,7 +2572,7 @@
         "name": "Wilbur",
         "bornAtMillis": 1754741700000,
         "lastTickAtMillis": 1755003600000,
-        "expiresAtMillis": 1756331460000,
+        "expiresAtMillis": 1756296900000,
         "utcOffsetMinutes": 0,
         "stage": "adult",
         "form": "prizeHog",

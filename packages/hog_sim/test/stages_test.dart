@@ -101,6 +101,22 @@ void main() {
       expect(formForMistakes(kFarmHogMaxMistakes + 1), Form.runt);
       expect(formForMistakes(500), Form.runt);
     });
+
+    test('bands sit inside the range a living pig can reach', () {
+      // A childhood is kPigletMinutes / kTickMinutes = 864 ticks. One mistake
+      // costs kTicksAtZeroForMistake * kHealthLossPerZeroedNeed = 18 health,
+      // and health only returns at kHealthRecovery per tick and only while all
+      // four needs are above kHealthRecoveryThreshold. So the whole budget is
+      // 100 + 0.2 * 864 = 273.8 health, or 15.2 mistakes even if recovery ran
+      // every tick of childhood — which it cannot, because driving a need to
+      // zero means spending ticks below the threshold. Measured ceiling under
+      // optimal play: 8. Bands above that are unreachable by play.
+      expect(kRuntWorstMistakes, lessThanOrEqualTo(8));
+      expect(formForMistakes(2), Form.prizeHog);
+      expect(formForMistakes(3), Form.farmHog);
+      expect(formForMistakes(5), Form.farmHog);
+      expect(formForMistakes(6), Form.runt);
+    });
   });
 
   group('lifespanMinutes', () {

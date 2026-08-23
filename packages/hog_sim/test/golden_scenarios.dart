@@ -310,7 +310,7 @@ List<AdvanceCase> advanceCases() {
     ),
     AdvanceCase(
       'transition/keeps-lifetime-mistakes',
-      nearlyGrown(stageCareMistakes: 4, careMistakes: 21),
+      nearlyGrown(stageCareMistakes: kPrizeHogMaxMistakes, careMistakes: 21),
       refNoon + hour,
     ),
 
