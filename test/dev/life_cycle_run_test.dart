@@ -17,6 +17,42 @@ typedef LifeResult = ({
   double lowestHealth,
 });
 
+/// Recovers the exact `stageCareMistakes` that decided [pet]'s adult form,
+/// from the lifespan the branch stamped onto `expiresAtMillis`.
+///
+/// Reading `pet.careMistakes` right after the transition looks like the
+/// obvious way to get this, but it is only exact at one-tick granularity.
+/// At 3600x, one `controller.tick()` call advances ~7.2 simulated ticks
+/// (`kAnimFrameMillis * 3600 / kTickMillis`), and `needZeroSinceTick` is not
+/// reset by a stage change — so a need still at zero when the branch fires
+/// can tick over another mistake in the same frame, *after* the branch,
+/// inflating the cumulative `careMistakes` this test would otherwise read.
+///
+/// `expiresAtMillis`, by contrast, is stamped once at the branch tick and
+/// never touched again, and `lifespanMinutes` is strictly monotonic in the
+/// mistake count within a form's band. So the deciding count is recovered
+/// exactly by scanning that band for the one value whose `expiresAtForAdult`
+/// reproduces the pig's actual `expiresAtMillis` — independent of how many
+/// ticks a single frame happened to advance.
+int decidingMistakes(PetState pet) {
+  final (lo, hi) = switch (pet.form) {
+    Form.prizeHog => (0, kPrizeHogMaxMistakes),
+    Form.farmHog => (kPrizeHogMaxMistakes + 1, kFarmHogMaxMistakes),
+    Form.runt => (kFarmHogMaxMistakes + 1, kRuntWorstMistakes),
+    Form.base => throw ArgumentError('base is not an adult form'),
+  };
+  for (var m = lo; m <= hi; m++) {
+    if (expiresAtForAdult(pet.bornAtMillis, pet.form, m) ==
+        pet.expiresAtMillis) {
+      return m;
+    }
+  }
+  fail(
+    'no mistake count in [$lo, $hi] reproduces this ${pet.form.name}\'s '
+    'expiresAtMillis (${pet.expiresAtMillis})',
+  );
+}
+
 /// Runs a whole life headlessly, exactly as the page will drive it.
 ///
 /// No widgets: a controller, a fake clock and the bot. 3600x means one frame
@@ -28,28 +64,21 @@ LifeResult runLife(CarePreset preset, {int speed = 3600}) {
   // irreproducible. Treats buy the same enrichment deterministically.
   final bot = CareBot(preset, playsHunt: false);
 
-  var mistakesAtBranch = -1;
   var lowestHealth = 100.0;
-  var previousStage = controller.pet.stage;
 
   for (var frame = 0; frame < 5000; frame++) {
     clock.advance(kAnimFrameMillis * speed);
     controller.tick();
 
     final pet = controller.pet;
-    if (pet.stage == Stage.adult && previousStage != Stage.adult) {
-      // The branch zeroes stageCareMistakes on the same tick it fixes the
-      // form, so the count that decided it has to be read from careMistakes.
-      mistakesAtBranch = pet.careMistakes;
-    }
-    previousStage = pet.stage;
     if (pet.health < lowestHealth) lowestHealth = pet.health;
 
     if (pet.isDead) {
+      final reachedAdult = pet.form != Form.base;
       return (
         form: pet.form,
-        mistakesAtBranch: mistakesAtBranch,
-        reachedAdult: mistakesAtBranch >= 0,
+        mistakesAtBranch: reachedAdult ? decidingMistakes(pet) : -1,
+        reachedAdult: reachedAdult,
         deathCause: pet.deathCause,
         ageAtDeathDays: (pet.diedAtMillis! - pet.bornAtMillis) ~/ 86400000,
         lowestHealth: lowestHealth,
@@ -86,6 +115,13 @@ void main() {
     expect(life.ageAtDeathDays, inInclusiveRange(15, 17));
   });
 
+  // This run's deciding count lands on the runt band floor (one above
+  // kFarmHogMaxMistakes), not its ceiling: rescueBelow: 35 calls the lapse
+  // off well before the pig could ever accumulate kRuntWorstMistakes (8).
+  // What this test demonstrates is that sloppy care survives childhood and
+  // produces a runt with the intended near-death signature — it does not
+  // demonstrate that the runt band's ceiling is reachable or survivable.
+  // No test in this file exercises kRuntWorstMistakes.
   test('sloppy care raises a runt that nearly did not make it', () {
     final life = runLife(CarePreset.sloppy);
     expect(life.reachedAdult, isTrue);

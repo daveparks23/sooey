@@ -158,6 +158,9 @@ const Map<CarePreset, CarePlan> kCarePlans = {
       CarePlan(targetMistakes: 0, rescueBelow: 100, resumeAbove: 100),
   CarePreset.adequate:
       CarePlan(targetMistakes: 4, rescueBelow: 45, resumeAbove: 60),
+  // targetMistakes: 7 is a ceiling this childhood never reaches — the
+  // rescue at health 35 calls the lapse off first. The full-life test
+  // (test/dev/life_cycle_run_test.dart) measures the realized count at 6.
   CarePreset.sloppy:
       CarePlan(targetMistakes: 7, rescueBelow: 35, resumeAbove: 60),
 };
