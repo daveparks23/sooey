@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hog_sim/hog_sim.dart';
 import 'package:sooey/dev/care_bot.dart';
+import 'package:sooey/game/clock.dart';
+import 'package:sooey/game/game_controller.dart';
 import 'package:sooey/game/screens/crest_screen.dart';
 import 'package:sooey/game/screens/death_screen.dart';
 import 'package:sooey/game/screens/device_screen.dart';
@@ -144,6 +146,68 @@ void main() {
             neglected: const {}, nowMillis: tenPm),
         isNull,
       );
+    });
+  });
+
+  group('CareBot', () {
+    GameController controllerAt(int millis) =>
+        GameController(clock: FakeClock(millis), utcOffsetMinutes: 0);
+
+    test('takes the opening crest so the pig can start living', () {
+      final c = controllerAt(kRefNoon);
+      final bot = CareBot(CarePreset.attentive);
+      expect(c.screen, isA<CrestScreen>());
+      expect(bot.nextPress(c), Button.b);
+    });
+
+    test('goes quiet on the death screen', () {
+      // The pet is born at whatever the clock says, so the clock has to move
+      // after the controller exists — thirty days with nobody home.
+      final clock = FakeClock(kRefNoon);
+      final c = GameController(clock: clock, utcOffsetMinutes: 0);
+      c.press(Button.b); // through the crest
+      clock.advance(30 * 86400000);
+      c.tick();
+
+      expect(c.pet.isDead, isTrue);
+      expect(c.screen, isA<DeathScreen>());
+      expect(CareBot(CarePreset.attentive).nextPress(c), isNull);
+    });
+
+    test('attentive never lets a need bottom out', () {
+      final bot = CareBot(CarePreset.attentive);
+      expect(bot.neglectedFor(testPet(stage: Stage.piglet)), isEmpty);
+    });
+
+    test('sloppy neglects until it has the mistakes it came for', () {
+      final bot = CareBot(CarePreset.sloppy);
+      final piglet = testPet(stage: Stage.piglet, health: 100);
+      expect(bot.neglectedFor(piglet), kLapseNeeds);
+
+      // Rescued once health reaches the floor.
+      expect(bot.neglectedFor(piglet.copyWith(health: 5)), isEmpty);
+      // Still cared for on the way back up.
+      expect(bot.neglectedFor(piglet.copyWith(health: 40)), isEmpty);
+      // And back to neglect once recovered.
+      expect(bot.neglectedFor(piglet.copyWith(health: 80)), kLapseNeeds);
+    });
+
+    test('stops neglecting once the target is met, and after childhood', () {
+      final bot = CareBot(CarePreset.sloppy);
+      final done = testPet(stage: Stage.piglet, health: 100)
+          .copyWith(careMistakes: kCarePlans[CarePreset.sloppy]!.targetMistakes);
+      expect(bot.neglectedFor(done), isEmpty);
+      expect(bot.neglectedFor(testPet(stage: Stage.adult, health: 100)),
+          isEmpty);
+    });
+
+    test('every preset target lands inside the band it is aiming at', () {
+      expect(formForMistakes(kCarePlans[CarePreset.attentive]!.targetMistakes),
+          Form.prizeHog);
+      expect(formForMistakes(kCarePlans[CarePreset.adequate]!.targetMistakes),
+          Form.farmHog);
+      expect(formForMistakes(kCarePlans[CarePreset.sloppy]!.targetMistakes),
+          Form.runt);
     });
   });
 }

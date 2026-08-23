@@ -1,5 +1,6 @@
 import 'package:hog_sim/hog_sim.dart';
 
+import '../game/game_controller.dart';
 import '../game/screens/crest_screen.dart';
 import '../game/screens/death_screen.dart';
 import '../game/screens/device_screen.dart';
@@ -118,4 +119,99 @@ BotGoal? chooseGoal(
   if (darkOutside && pet.lightsOn) return BotGoal.lightOff;
   if (!darkOutside && !pet.lightsOn) return BotGoal.lightOn;
   return null;
+}
+
+/// How well a run intends to treat its pig.
+enum CarePreset { attentive, adequate, sloppy }
+
+/// One preset, as numbers.
+class CarePlan {
+  const CarePlan({
+    required this.targetMistakes,
+    required this.rescueBelow,
+    required this.resumeAbove,
+  });
+
+  /// Mistakes to make during childhood. The adult form is decided by this
+  /// count at the piglet->adult branch and by nothing else.
+  final int targetMistakes;
+
+  /// Health at which a lapse is called off and the pig is rescued.
+  final double rescueBelow;
+
+  /// Health at which neglect resumes, if the target is not yet met.
+  final double resumeAbove;
+}
+
+const Map<CarePreset, CarePlan> kCarePlans = {
+  CarePreset.attentive:
+      CarePlan(targetMistakes: 0, rescueBelow: 100, resumeAbove: 100),
+  CarePreset.adequate:
+      CarePlan(targetMistakes: 4, rescueBelow: 45, resumeAbove: 60),
+  CarePreset.sloppy:
+      CarePlan(targetMistakes: 7, rescueBelow: 10, resumeAbove: 60),
+};
+
+/// The two needs a lapse is allowed to bottom out.
+///
+/// Comfort and cleanliness are held above the recovery threshold at all times.
+/// They are the two that can only be restored to 100 — wallow and clean take
+/// no smaller step — so zeroing them buys a long redrain, and with four needs
+/// at zero the mistakes arrive four at a time and a target overshoots out of
+/// its band. Two needs means an overshoot of at most one.
+const Set<String> kLapseNeeds = {'fullness', 'enrichment'};
+
+/// Plays a pig unattended, one button press at a time.
+///
+/// Deliberately knows nothing about widgets: it reads a [GameController] and
+/// returns a button, which is what lets a whole life run in a test with no
+/// widget tree in play.
+class CareBot {
+  CareBot(this.preset, {this.playsHunt = true});
+
+  final CarePreset preset;
+
+  /// False makes the bot use treats instead of the truffle hunt. The hunt
+  /// draws from `dart:math`'s Random, so a run that plays it is not
+  /// reproducible; the full-life tests turn it off for that reason.
+  final bool playsHunt;
+
+  bool _lapsing = true;
+  bool _neglecting = false;
+
+  /// Whether the bot is currently letting needs bottom out. For the readout.
+  bool get neglecting => _neglecting;
+
+  /// Which needs the run is deliberately ignoring at this moment.
+  Set<String> neglectedFor(PetState pet) {
+    final plan = kCarePlans[preset]!;
+    // Only childhood decides the form, and only mistakes short of the target
+    // are wanted. Everything else is attentive care.
+    if (pet.stage != Stage.piglet || pet.careMistakes >= plan.targetMistakes) {
+      _neglecting = false;
+      return const {};
+    }
+    if (_lapsing && pet.health <= plan.rescueBelow) _lapsing = false;
+    if (!_lapsing && pet.health >= plan.resumeAbove) _lapsing = true;
+    _neglecting = _lapsing;
+    return _lapsing ? kLapseNeeds : const {};
+  }
+
+  /// One press, or null when there is nothing worth pressing this frame.
+  Button? nextPress(GameController controller) {
+    final screen = controller.screen;
+    if (screen is DeathScreen) return null;
+    if (screen is CrestScreen) return Button.b;
+
+    final goal = chooseGoal(
+      controller.pet,
+      neglected: neglectedFor(controller.pet),
+      nowMillis: controller.context.nowMillis,
+      playsHunt: playsHunt,
+    );
+    // Nothing to do: rest on home, and back out of anywhere else so the next
+    // frame starts from a known screen.
+    if (goal == null) return screen is HomeScreen ? null : Button.c;
+    return pressToward(goal, screen);
+  }
 }
