@@ -8,6 +8,16 @@ import '../game/screens/feed_menu.dart';
 import '../game/screens/home_screen.dart';
 import '../game/screens/truffle_hunt.dart';
 
+/// How many presses the bot may make in one animation frame.
+///
+/// A frame is 600ms of wall clock. At 3600x that is 36 simulated minutes, in
+/// which a piglet loses about 3 fullness and 3 comfort — and feeding is a
+/// four-press sequence: cursor to feed, B, cursor to slop, B. At one press a
+/// frame the bot spends every frame navigating and still falls behind. Six is
+/// far fewer than a human could manage in 36 simulated minutes, so nothing it
+/// achieves here is out of a player's reach.
+const int kBotPressBudget = 6;
+
 /// One thing the bot is trying to get done.
 ///
 /// Finer than [DeviceIcon] because the feed icon leads to two different
@@ -149,7 +159,7 @@ const Map<CarePreset, CarePlan> kCarePlans = {
   CarePreset.adequate:
       CarePlan(targetMistakes: 4, rescueBelow: 45, resumeAbove: 60),
   CarePreset.sloppy:
-      CarePlan(targetMistakes: 7, rescueBelow: 10, resumeAbove: 60),
+      CarePlan(targetMistakes: 7, rescueBelow: 35, resumeAbove: 60),
 };
 
 /// The two needs a lapse is allowed to bottom out.
