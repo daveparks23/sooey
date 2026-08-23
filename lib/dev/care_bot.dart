@@ -1,3 +1,5 @@
+import 'package:hog_sim/hog_sim.dart';
+
 import '../game/screens/crest_screen.dart';
 import '../game/screens/death_screen.dart';
 import '../game/screens/device_screen.dart';
@@ -48,4 +50,72 @@ Button? pressToward(BotGoal goal, DeviceScreen screen) {
   // Anything else — stats, or a screen added after this was written — is
   // somewhere the bot did not mean to be. C is the way out of all of them.
   return Button.c;
+}
+
+/// Below this a need gets attention. Above `kHealthRecoveryThreshold` (50) by
+/// a margin, because a need that is only just clear of the threshold will drop
+/// under it again before the bot next comes round.
+const double kServiceBelow = 60;
+
+/// What the pig most needs right now, or null when nothing wants doing.
+///
+/// [neglected] names the needs this run is deliberately letting bottom out;
+/// they are skipped entirely. Pure — it reads a pet and returns an intention.
+BotGoal? chooseGoal(
+  PetState pet, {
+  required Set<String> neglected,
+  required int nowMillis,
+  bool playsHunt = true,
+}) {
+  // An egg refuses everything but the light, and the light on an egg is not
+  // worth the seven presses it takes to reach.
+  if (pet.isDead || pet.stage == Stage.egg) return null;
+
+  if (pet.isSick) return BotGoal.meds;
+
+  if (!neglected.contains('cleanliness') &&
+      (pet.poops.isNotEmpty || pet.cleanliness < kServiceBelow)) {
+    return BotGoal.clean;
+  }
+
+  // The lowest need wins, so nothing bottoms out while something less urgent
+  // is topped up.
+  String? lowest;
+  double lowestValue = kServiceBelow;
+  void consider(String name, double value) {
+    if (neglected.contains(name) || value >= lowestValue) return;
+    lowest = name;
+    lowestValue = value;
+  }
+
+  consider('fullness', pet.fullness);
+  consider('enrichment', pet.enrichment);
+  consider('comfort', pet.comfort);
+
+  switch (lowest) {
+    case 'fullness':
+      return BotGoal.slop;
+    case 'comfort':
+      return BotGoal.wallow;
+    case 'enrichment':
+      // The hunt is five rounds, one guess per frame, and the bot is stuck on
+      // that screen for all five — so it is only affordable when nothing else
+      // is near the floor. A treat buys enrichment in a single visit instead.
+      final last = pet.lastPlayedAtMillis;
+      final cooling = last != null && nowMillis - last < kPlayCooldownMillis;
+      final slack = pet.fullness > kServiceBelow &&
+          pet.comfort > kServiceBelow &&
+          pet.cleanliness > kServiceBelow;
+      return playsHunt && slack && !cooling ? BotGoal.play : BotGoal.treat;
+  }
+
+  // Nothing needs doing, so keep the pen light honest. Costs nothing and makes
+  // the nights visible as they go past.
+  final localHour =
+      ((nowMillis + pet.utcOffsetMinutes * 60000) ~/ 3600000) % 24;
+  final darkOutside =
+      localHour >= kSleepStartHour || localHour < kSleepEndHour;
+  if (darkOutside && pet.lightsOn) return BotGoal.lightOff;
+  if (!darkOutside && !pet.lightsOn) return BotGoal.lightOn;
+  return null;
 }
