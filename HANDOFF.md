@@ -159,7 +159,7 @@ the mistake bands scaled 1.5× to 5 / 14 / 38.
 they were first scaled to.** A care mistake costs 18 health and health returns
 at 0.2 a tick, so an 864-tick childhood affords about eight of them. The old
 bands put the entire runt range past the point where the pig was already dead —
-four different deliberate-neglect policies, swept across twenty parameter
+two different deliberate-neglect policies, swept across twenty parameter
 combinations, all topped out at 8 mistakes. `life-cycle-harness-design.md` has
 the measurement. `/dev/life` is what keeps the new bands honest.
 

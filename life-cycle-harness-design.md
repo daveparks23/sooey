@@ -77,7 +77,7 @@ the pig is not sick.
 
 A childhood is `kPigletMinutes / kTickMinutes` = 864 ticks. So the entire health
 budget available to spend on mistakes is `100 + 0.2 × 864` = 272.8, which is
-**15.15 mistakes even if recovery ran on every single tick of childhood** — and
+**15.2 mistakes even if recovery ran on every single tick of childhood** — and
 it cannot, because driving a need to zero means spending ticks below 50, where
 nothing recovers. Fifteen is therefore an unreachable arithmetic ceiling, not
 merely a hard target. Eight is the practical one.
@@ -206,7 +206,7 @@ childhood.
 A preset makes its mistakes **early and all at once**, then cares perfectly for
 the rest of childhood. While it is making them it stops servicing every need and
 lets them all bottom out together, rescuing the pig whenever health falls to a
-floor — 45 for adequate, which never looks dangerous, and 12 for sloppy, which
+floor — 45 for adequate, which never looks dangerous, and 35 for sloppy, which
 does. Once the intended count is reached it reverts to attentive care and the
 pig recovers for whatever childhood is left.
 

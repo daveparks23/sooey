@@ -107,7 +107,7 @@ void main() {
       // costs kTicksAtZeroForMistake * kHealthLossPerZeroedNeed = 18 health,
       // and health only returns at kHealthRecovery per tick and only while all
       // four needs are above kHealthRecoveryThreshold. So the whole budget is
-      // 100 + 0.2 * 864 = 272.8 health, or 15.15 mistakes even if recovery ran
+      // 100 + 0.2 * 864 = 272.8 health, or 15.2 mistakes even if recovery ran
       // every tick of childhood — which it cannot, because driving a need to
       // zero means spending ticks below the threshold. Measured ceiling under
       // optimal play: 8. Bands above that are unreachable by play.
