@@ -76,8 +76,8 @@ at zero, at `kHealthLossPerZeroedNeed` (1.5) per tick. Health only comes back at
 the pig is not sick.
 
 A childhood is `kPigletMinutes / kTickMinutes` = 864 ticks. So the entire health
-budget available to spend on mistakes is `100 + 0.2 × 864` = 273.8, which is
-**15.2 mistakes even if recovery ran on every single tick of childhood** — and
+budget available to spend on mistakes is `100 + 0.2 × 864` = 272.8, which is
+**15.15 mistakes even if recovery ran on every single tick of childhood** — and
 it cannot, because driving a need to zero means spending ticks below 50, where
 nothing recovers. Fifteen is therefore an unreachable arithmetic ceiling, not
 merely a hard target. Eight is the practical one.
@@ -280,6 +280,28 @@ rather than assumed.
 
 `flutter test` carries one standing unrelated failure on `prop.grave`; see
 `HANDOFF.md`.
+
+### What the harness actually demonstrated
+
+Three lives came out of the full-life tests, one per preset: attentive care
+raises a prize hog at 0 mistakes, dying of old age at day 20; adequate care
+raises a farm hog at 4 mistakes, day 16; sloppy care raises a runt at 6
+mistakes, lowest health 19, day 14. One knob moved to get there — sloppy's
+`rescueBelow` went from 10 to 35 during tuning, because at 10 the pig died in
+childhood rather than surviving to the branch as a runt.
+
+That is narrower than it might read. The deciding count sloppy actually
+produces is 6 — the floor of the runt band, one above `kFarmHogMaxMistakes` —
+not the ceiling. `kRuntWorstMistakes` (8) is exercised by no test in this
+repo; `test/dev/life_cycle_run_test.dart` says so directly, and asserts only
+that the count falls somewhere inside the runt band. The measured ceiling of
+8, cited in Part 1 as the practical limit on what a childhood can survive,
+came from two throwaway policies run at design time and hand-tuned to convert
+health into mistakes as efficiently as possible — not from the bot, and not
+under test. What the harness demonstrates is that a pig can survive 6
+mistakes and become a runt; it does not demonstrate that 8 is survivable, only
+that a hand-optimized probe reached it once, outside the harness, before any
+of this was built.
 
 ---
 

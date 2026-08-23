@@ -44,6 +44,7 @@ Routes:
 | `/` | The device itself, on the real `SystemClock`. |
 | `/dev` | The dev menu — links to everything below. |
 | `/dev/device` | The same device widget as `/`, mounted on a `FakeClock` with speed and jump controls, for watching the long arcs by hand. |
+| `/dev/life` | A bot plays a whole life unattended at 600x-10800x, at one of three care qualities. The only way to see an entire life cycle. |
 | `/dev/preview` | Drives the real composer from a pet you can poke at. Start here for sprite work. |
 | `/dev/sprites` | Every sprite animating at 600ms, with pause and step |
 | `/dev/editor` | 32×16 grid editor that emits paste-ready Dart |
@@ -54,16 +55,16 @@ scaffolding and is not reachable from the device itself.
 ## Verifying everything
 
 ```bash
-cd packages/hog_sim && dart test        # 119 — the simulation
-cd packages/hog_sim && dart test -p chrome   # 114 — same suite under dart2js
-flutter test                            # 220 — renderer, sprites, composer, the M4 input machine
+cd packages/hog_sim && dart test        # 120 — the simulation
+cd packages/hog_sim && dart test -p chrome   # 115 — same suite under dart2js
+flutter test                            # 244 — renderer, sprites, composer, the M4 input machine, the life cycle harness
 cd functions && npm test                # 14  — the JS bridge conformance
 ```
 
 All four must pass, with one standing exception: `flutter test` carries one
 known failure, `every sprite in the cast is well formed` on `prop.grave` —
 Dave's grave redraw is mid-flight and not yet the declared size. Expect
-220 passes and that one failure until it lands; anything else red is a
+244 passes and that one failure until it lands; anything else red is a
 real regression. The `-p chrome` run is not optional — see
 [Determinism](#determinism-the-thing-most-likely-to-bite-you).
 
@@ -153,6 +154,14 @@ branches at the single piglet→adult transition, so the hidden judgment now
 weighs the entire upbringing. Two balance values moved with it: the piglet decay
 multiplier is 1.25 (the time-weighted average of the two stages it replaced) and
 the mistake bands scaled 1.5× to 5 / 14 / 38.
+
+**The mistake bands are 2 / 5 / 8, not the spec's 3 / 9 / 25 or the 5 / 14 / 38
+they were first scaled to.** A care mistake costs 18 health and health returns
+at 0.2 a tick, so an 864-tick childhood affords about eight of them. The old
+bands put the entire runt range past the point where the pig was already dead —
+four different deliberate-neglect policies, swept across twenty parameter
+combinations, all topped out at 8 mistakes. `life-cycle-harness-design.md` has
+the measurement. `/dev/life` is what keeps the new bands honest.
 
 **Front-facing outlined art, not the spec's side view.** Dave drew a
 front-facing outlined pig and it is much better: a pig in profile has no face to
@@ -267,7 +276,7 @@ database *creation*. Hosting also still points at `public/` rather than
 | **M3** Renderer | **done** | crisp at three widths with no fractional dots; golden frames per creature state |
 | **M4** Local loop | **done** | a pet can be fed, cleaned and played with, and dies if left alone, entirely on the strict three-button interface |
 | **M5** Persistence | **next** | anon auth, callables, rules, emulator, debug clock, seeder |
-| **M6** Life cycle | | transitions, three forms, death, tombstones, new pet |
+| **M6** Life cycle | | transitions, three forms, death, tombstones, new pet — `/dev/life` already exercises transitions, all three forms and death end to end; tombstones and new-pet remain |
 
 Out of v1: push notifications, account linking, live deploy, discipline and
 training (spec D2), sound, graveyard, lineage.

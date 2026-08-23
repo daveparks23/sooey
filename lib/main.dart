@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'dev/device_dev_page.dart';
+import 'dev/life_cycle_page.dart';
 import 'dev/pet_preview_page.dart';
 import 'dev/sprite_editor_page.dart';
 import 'dev/sprite_gallery_page.dart';
@@ -35,6 +36,7 @@ class HogPocketApp extends StatelessWidget {
         '/': (_) => const DevicePage(),
         '/dev': (_) => const DevMenuPage(),
         '/dev/device': (_) => const DeviceDevPage(),
+        '/dev/life': (_) => const LifeCyclePage(),
         '/dev/preview': (_) => const PetPreviewPage(),
         '/dev/sprites': (_) => const SpriteGalleryPage(),
         '/dev/editor': (_) => const SpriteEditorPage(),
@@ -62,6 +64,11 @@ class DevMenuPage extends StatelessWidget {
             FilledButton(
               onPressed: () => Navigator.pushNamed(context, '/dev/device'),
               child: const Text('Device (fake clock)'),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: () => Navigator.pushNamed(context, '/dev/life'),
+              child: const Text('Life cycle (bot-driven)'),
             ),
             const SizedBox(height: 12),
             OutlinedButton(
