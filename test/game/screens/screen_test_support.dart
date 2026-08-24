@@ -1,10 +1,15 @@
 import 'package:hog_sim/hog_sim.dart';
+import 'package:sooey/dev/reference_clock.dart' show kRefNoon;
 import 'package:sooey/game/screens/device_screen.dart';
 import 'package:sooey/sprites/sprite_registry.dart';
 
-/// Noon UTC. The pig sleeps from 22:00 to 07:00 in its own local time, so a
-/// test that wants a waking pig starts here.
-const int kRefNoon = 1755000000000;
+export 'package:sooey/dev/reference_clock.dart' show kRefNoon;
+
+// kRefNoon (noon UTC) lives in lib/dev/reference_clock.dart — the /dev/life
+// page pins its clock to the same value, so this is one number shared by the
+// page and every test that wants it, not two that can drift apart. The pig
+// sleeps from 22:00 to 07:00 in its own local time, so a test that wants a
+// waking pig starts here.
 
 /// A pet with no history, posed however the test needs it.
 PetState testPet({

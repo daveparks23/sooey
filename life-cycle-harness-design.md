@@ -260,9 +260,9 @@ The page mounts `DeviceShell` on a `FakeClock` and steps it on the existing
 **The bot gets one press per six simulated minutes.** At 3600× a frame is 7.2
 ticks, in which a piglet loses about 3 fullness and 3 comfort, and feeding alone
 is a four-press sequence. Held to a single press per frame at that speed, the
-bot would spend nearly every frame navigating and still fall behind. Six presses per frame at 3600× is not
-cheating: 600ms at 3600× is 36 simulated minutes, so six presses in that window
-is far slower than a human at 1×.
+bot would spend nearly every frame navigating and still fall behind. Six presses
+per frame at 3600× is not cheating: 600ms at 3600× is 36 simulated minutes, so
+six presses in that window is far slower than a human at 1×.
 
 The budget is `botPressBudget(speed)` rather than a flat presses-per-frame
 constant, because a frame is a fixed slice of *wall* clock and a variable slice
@@ -291,6 +291,29 @@ than jumping two hours and then pressing eighteen times.
 
 The run stops on death. The death screen comes up on its own through the
 existing controller path, the bot goes quiet, and the summary stays on screen.
+
+### The start phase matters for sloppy care
+
+Pinning the clock to `kRefNoon` rather than seeding it from `DateTime.now()` is
+not only for reproducible tests. A review found that which adult sloppy care
+produces depends on what time of day the run starts, because both the bot's
+sleep/light toggle and the sloppy preset's 35/60 rescue hysteresis key off the
+pig's local hour. A sweep of quarter-hour start instants across a full day, hunt
+off, found attentive and adequate unaffected — 0/96 wrong at both 600× and 3600× —
+but sloppy wrong at 31/96 starts at 600× and 24/96 at 3600×, with the 3600× bad
+window running essentially contiguous from 17:15 to 23:30 UTC. Pinning the page to
+19:00 UTC and changing nothing else was enough to turn the committed `sloppy care
+raises a runt` test red. Noon UTC sits well clear of that window at both speeds —
+the nearest bad start found by re-sweeping after the pin is about an hour away at
+600× and over five hours away at 3600× — so it is what the page and every test now
+start from.
+
+Pinning makes runs reproducible; it does not make the bot robust. The same time of
+day still governs the outcome, and nothing here changed the rescue hysteresis
+itself — only which instant every caller starts the clock at. Anyone who moves
+`rescueBelow`, `resumeAbove`, or the sleep/light hours should re-run the sweep
+before trusting that noon still lands in sloppy's good window; the bad window is
+not guaranteed to stay where it is once those numbers move.
 
 ### The readout
 

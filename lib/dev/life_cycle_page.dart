@@ -8,6 +8,7 @@ import '../game/clock.dart';
 import '../game/game_controller.dart';
 import '../sprites/sprite_registry.dart';
 import 'care_bot.dart';
+import 'reference_clock.dart';
 
 /// Dev-only: a whole life, played by a bot, on a clock you can wind.
 ///
@@ -76,7 +77,12 @@ class _LifeCyclePageState extends State<LifeCyclePage> {
   void _reset() {
     _timer?.cancel();
     _timer = null;
-    _clock = FakeClock(DateTime.now().millisecondsSinceEpoch);
+    // Pinned rather than DateTime.now(): the bot's sleep/light policy and the
+    // sloppy preset's rescue hysteresis are phase-sensitive, so which adult a
+    // run produces can depend on the time of day it started. See kRefNoon's
+    // doc comment and "The start phase matters for sloppy care" in
+    // life-cycle-harness-design.md.
+    _clock = FakeClock(kRefNoon);
     _controller = GameController(clock: _clock, utcOffsetMinutes: 0);
     _bot = CareBot(_preset, playsHunt: _playsHunt);
     _log.clear();
@@ -264,6 +270,9 @@ class _LifeCyclePageState extends State<LifeCyclePage> {
                         Text(
                           '${pet.stage.name}/${pet.form.name}  '
                           'age ${_ageLabel()}',
+                        ),
+                        const Text(
+                          "clock pinned to noon UTC, not this machine's time",
                         ),
                         Text(
                           'health ${pet.health.toStringAsFixed(0)}  '

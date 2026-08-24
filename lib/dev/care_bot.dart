@@ -223,13 +223,16 @@ const Set<String> kLapseNeeds = {'fullness', 'enrichment'};
 /// returns a button, which is what lets a whole life run in a test with no
 /// widget tree in play.
 class CareBot {
-  CareBot(this.preset, {this.playsHunt = true});
+  CareBot(this.preset, {this.playsHunt = false});
 
   final CarePreset preset;
 
-  /// False makes the bot use treats instead of the truffle hunt. The hunt
-  /// draws from `dart:math`'s Random, so a run that plays it is not
-  /// reproducible; the full-life tests turn it off for that reason.
+  /// True makes the bot play the truffle hunt instead of buying enrichment
+  /// with treats. The hunt draws from `dart:math`'s Random, so a run that
+  /// plays it is not reproducible — and it changes which adult a preset
+  /// produces (see `chooseGoal`'s doc comment) — so the safe, reproducible
+  /// setting is the default; every call site that wants the hunt says so
+  /// explicitly.
   final bool playsHunt;
 
   bool _lapsing = true;
