@@ -109,9 +109,38 @@ void main() {
       // four needs are above kHealthRecoveryThreshold. So the whole budget is
       // 100 + 0.2 * 864 = 272.8 health, or 15.2 mistakes even if recovery ran
       // every tick of childhood — which it cannot, because driving a need to
-      // zero means spending ticks below the threshold. Measured ceiling under
-      // optimal play: 8. Bands above that are unreachable by play.
+      // zero means spending ticks below the threshold.
+      //
+      // What play actually reaches is lower, and not precisely known: the
+      // deliberate-neglect policies written at design time reached 7-8, an
+      // independent re-measurement with three different policies topped out at
+      // 7, and the standing harness (test/dev/life_cycle_run_test.dart)
+      // demonstrates 6. Treat 8 as the most any probe has managed rather than
+      // as a demonstrated ceiling — the top of the runt band is marginal and
+      // may be unreachable.
       expect(kRuntWorstMistakes, lessThanOrEqualTo(8));
+
+      // And the other direction, which a bare upper bound does not give: 1
+      // would satisfy the line above and would be nonsense. Every band has to
+      // be at least three mistakes wide, or the difference between two adults
+      // comes down to a single mistake and lifespanMinutes interpolates across
+      // nothing (a one-wide band divides by zero outright).
+      expect(
+        kPrizeHogMaxMistakes + 1,
+        greaterThanOrEqualTo(3),
+        reason: 'the prize hog band is 0..kPrizeHogMaxMistakes',
+      );
+      expect(
+        kFarmHogMaxMistakes - kPrizeHogMaxMistakes,
+        greaterThanOrEqualTo(3),
+        reason: 'the farm hog band',
+      );
+      expect(
+        kRuntWorstMistakes - kFarmHogMaxMistakes,
+        greaterThanOrEqualTo(3),
+        reason: 'the runt band',
+      );
+
       expect(formForMistakes(2), Form.prizeHog);
       expect(formForMistakes(3), Form.farmHog);
       expect(formForMistakes(5), Form.farmHog);

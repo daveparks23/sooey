@@ -162,14 +162,24 @@ const Map<String, double> kFormSicknessMultiplier = {
 ///
 /// Scaled down to the range a pig can reach and survive. A mistake costs 18
 /// health and health returns at 0.2 a tick, so an 864-tick childhood affords
-/// about 8 of them; the previous bands of 5 / 14 / 38 put the whole runt band
-/// past the point where the pig is already dead, and every one of the four
-/// deliberate-neglect policies measured during design topped out at 8.
+/// single digits of them; the previous bands of 5 / 14 / 38 put the whole runt
+/// band past the point where the pig is already dead.
+///
+/// Where exactly the top of that range sits is not firmly established. The two
+/// deliberate-neglect policies written during design reached 7-8 across twenty
+/// parameter combinations; a later independent re-measurement, with three
+/// different hand-optimized policies across 60+ combinations, topped out at 7;
+/// and the standing harness demonstrates 6. So 8 is the most any probe has
+/// reached and may not be reachable by play at all — what is solid is that the
+/// range is single digits, which is what these bands are cut for.
 /// See life-cycle-harness-design.md.
 const int kPrizeHogMaxMistakes = 2;
 const int kFarmHogMaxMistakes = 5;
 
 /// Mistake count at which the runt's lifespan bottoms out.
+///
+/// The far end of the interpolation, not a count anything is known to reach:
+/// see the note above. A pig past it simply gets the shortest runt lifespan.
 const int kRuntWorstMistakes = 8;
 
 const Map<String, (int, int)> kFormLifespanDays = {
