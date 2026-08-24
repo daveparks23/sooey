@@ -25,10 +25,13 @@ Asked and answered before any of it was designed.
 that emits a timeline and a contact sheet of frames. Rejected: the point is to
 see the pig live, and a report cannot show that the device survived a life.
 
-**Fully unattended.** The bot picks the crest, tends the pig and plays the
-truffle hunt for the entire run. No takeover, no scrubbing, no jump-to-event.
-Press start and watch. A repeatable run is worth more than an interactive one,
-and taking the buttons back mid-life is a different feature.
+**Fully unattended.** The bot picks the crest and tends the pig for the entire
+run. No takeover, no scrubbing, no jump-to-event. Press start and watch. A
+repeatable run is worth more than an interactive one, and taking the buttons
+back mid-life is a different feature.
+
+The truffle hunt is the one part of that the page puts on a switch, default
+**off** — see [The truffle hunt is a knob, not scenery](#the-truffle-hunt-is-a-knob-not-scenery).
 
 **Three care qualities, one knob.** Attentive, adequate and sloppy, producing
 the three adults. The form is decided purely by care-mistake count at the
@@ -68,6 +71,12 @@ nine.
 Attentive care, as a baseline, produces 0 mistakes and health that never leaves
 100.
 
+Treat that 8 as the high-water mark of the probes rather than a demonstrated
+ceiling. A later independent re-measurement, with three different hand-optimized
+policies across 60+ parameter combinations, topped out at 7; the harness's own
+sloppy preset reaches 6. See
+[What the harness actually demonstrated](#what-the-harness-actually-demonstrated).
+
 ### Why the ceiling is where it is
 
 A care mistake costs 18 health: `kTicksAtZeroForMistake` (12) ticks with a need
@@ -80,7 +89,8 @@ budget available to spend on mistakes is `100 + 0.2 × 864` = 272.8, which is
 **15.2 mistakes even if recovery ran on every single tick of childhood** — and
 it cannot, because driving a need to zero means spending ticks below 50, where
 nothing recovers. Fifteen is therefore an unreachable arithmetic ceiling, not
-merely a hard target. Eight is the practical one.
+merely a hard target. The practical one is somewhere in single digits: the
+probes above reached 7-8 and nothing since has beaten 7.
 
 The runt band begins at `kFarmHogMaxMistakes + 1` = 15. It cannot be entered by
 a pig that survives its childhood. `kRuntWorstMistakes` = 38, the count at which
@@ -172,8 +182,8 @@ It recognises where it is by switching on `controller.screen`:
 | --- | --- |
 | `CrestScreen` | B, taking the first crest. The crest is cosmetic and picking one is not what we came to watch. |
 | `HomeScreen` | A until `litIcon` is the icon it wants, then B. |
-| `FeedMenu` | A if `treat` is not the choice it wants, then B. |
-| `TruffleHunt` | A whenever `revealing` is false — one guess per round, five rounds. |
+| `FeedMenu` | A if `treat` is not the choice it wants, then B — but C on any goal that is not slop or a treat, because B here feeds the pig and a goal that never opened this menu must not confirm it. |
+| `TruffleHunt` | A whenever `revealing` is false — one guess per round, five rounds. C on any other goal: the hunt has no exit (B is ignored, both A and C are guesses), so the only way off the screen is to play it out. |
 | `StatsScreen` | C. It never opens this; the case exists so an unexpected screen cannot wedge the run. |
 | `DeathScreen` | **null, always.** B there is `Restart` and would erase the life just watched. |
 
@@ -220,26 +230,64 @@ whether one need is at zero or four, so zeroing four earns them four times
 faster and leaves far more of the childhood free for health to recover in.
 
 The intended counts are a starting point, not a promise. The preset test below
-is what makes them true, and the sloppy preset sits one mistake under the
-measured ceiling of eight, so it is the one expected to need tuning.
+is what makes them true. `targetMistakes: 7` for sloppy is inert — the rescue at
+health 35 calls the lapse off first — and the count the preset actually realizes
+is 6, at both speeds the page offers.
+
+### The truffle hunt is a knob, not scenery
+
+The hunt returns up to 25 enrichment in one visit against a treat's 10, so a run
+that plays it re-drains for far longer, fits fewer lapse cycles into childhood,
+and lands short of the mistakes the preset came for. Measured at 3600× with
+everything else equal, sloppy care produces a **farm hog** with the hunt on and a
+**runt** with it off.
+
+So the hunt is a setting, on the panel, labelled as changing the outcome, and
+**default off** — which is what the full-life tests pin, so what ships is what
+the tests measured. Switching it starts a new pig, exactly as changing the preset
+does: a childhood played half under each setting belongs to neither.
+
+It is a switch rather than a deletion because watching the pig play is half the
+reason there is a device to watch, and because the hunt draws from `dart:math`'s
+`Random` — a run that plays it is not reproducible, which is a fine thing to
+watch and a poor thing to assert on.
 
 ### Driving the run
 
 The page mounts `DeviceShell` on a `FakeClock` and steps it on the existing
 600ms animation frame, exactly as `/dev/device` does. Two differences.
 
-**The bot gets up to six presses per frame.** At 3600× a frame is 7.2 ticks, in
-which a piglet loses about 3 fullness and 3 comfort, and feeding alone is a
-four-press sequence. At one press per frame the bot spends nearly every frame
-navigating and still falls behind. Six presses per frame is not cheating: 600ms
-at 3600× is 36 simulated minutes, so six presses in that window is far slower
-than a human at 1×.
+**The bot gets one press per six simulated minutes.** At 3600× a frame is 7.2
+ticks, in which a piglet loses about 3 fullness and 3 comfort, and feeding alone
+is a four-press sequence. Held to a single press per frame at that speed, the
+bot would spend nearly every frame navigating and still fall behind. Six presses per frame at 3600× is not
+cheating: 600ms at 3600× is 36 simulated minutes, so six presses in that window
+is far slower than a human at 1×.
 
-**Speeds are 600× / 3600× / 10800×.** 3600× puts a full life at about eight
-minutes, of which roughly seven are an adult pig that changes very little;
-10800× brings it under three, at the cost of the pig visibly stepping rather
-than moving, since each frame then advances nearly two simulated hours. 1× and
-60× are dropped — a life at 60× is eight hours and nobody is watching that.
+The budget is `botPressBudget(speed)` rather than a flat presses-per-frame
+constant, because a frame is a fixed slice of *wall* clock and a variable slice
+of *simulated* time, while care demand is per simulated tick. A flat budget made
+the bot's care throughput scale inversely with the speed chip, and the same
+preset then produced a different adult at each speed — measured, sloppy gave a
+farm hog at 600×, a runt at 3600×, and a pig starved on day 1.3 at 10800×.
+Scaling with simulated time holds the cadence constant: 1 press a frame at 600×,
+6 at 3600× (unchanged), with a floor of one press so a slow speed cannot starve
+the bot.
+
+**Speeds are 600× and 3600×.** 3600× puts a full life at about eight minutes, of
+which roughly seven are an adult pig that changes very little. 1× and 60× are
+dropped — a life at 60× is eight hours and nobody is watching that.
+
+10800× was offered and has been **removed**. Even with the press budget scaled it
+produced a farm hog from the sloppy preset where both remaining speeds produce a
+runt: a frame there is 21.6 simulated ticks, which is far too coarse for the
+35/60 rescue hysteresis the sloppy plan runs on — the bot cannot see the floor it
+meant to stop at, overshoots, and the lapse ends somewhere other than where the
+plan said. A speed chip that silently changes which animal you get is worse than
+a slower run. Restoring it means decoupling the bot's press cadence from the
+animation frame, so it can act between simulated ticks — a frame would advance
+the clock in tick-sized steps and offer the bot its budget across them, rather
+than jumping two hours and then pressing eighteen times.
 
 The run stops on death. The death screen comes up on its own through the
 existing controller path, the bot goes quiet, and the summary stays on screen.
@@ -278,30 +326,54 @@ presses, so it runs in well under a second. That test is what keeps the presets 
 balance change, and it is the reason the rescale in Part 1 can be trusted
 rather than assumed.
 
+Every preset runs at **every speed the page offers**, not just the default. The
+speed chip is supposed to be a viewing control, and the only way to keep it one
+is to assert it. The same goes for the page itself: a widget test per preset
+drives `/dev/life` through a whole life and reads the adult back out of the event
+log, because the harness's promise is about what the *page* does, and the page
+was for a while constructing a different bot from the one the headless tests
+pinned. Those three page tests cost about five seconds.
+
+Reading the deciding mistake count is shared code, not duplicated: `careMistakes`
+is only exact at one-tick granularity, and a frame at 3600× is 7.2 ticks, so a
+need still at zero when the branch fires can add another mistake *after* it,
+inside the same frame. `decidingMistakes` in `care_bot.dart` recovers the exact
+count from the `expiresAtMillis` the branch stamped, and the page and the tests
+both call it.
+
 `flutter test` carries one standing unrelated failure on `prop.grave`; see
 `HANDOFF.md`.
 
 ### What the harness actually demonstrated
 
-Three lives came out of the full-life tests, one per preset: attentive care
-raises a prize hog at 0 mistakes, dying of old age at day 20; adequate care
-raises a farm hog at 4 mistakes, day 16; sloppy care raises a runt at 6
-mistakes, lowest health 19, day 14. One knob moved to get there — sloppy's
-`rescueBelow` went from 10 to 35 during tuning, because at 10 the pig died in
-childhood rather than surviving to the branch as a runt.
+Six lives, one per preset per speed, headless and on the page alike:
+
+| preset | 600× | 3600× |
+| --- | --- | --- |
+| attentive | prize hog, 0 mistakes, day 20 | prize hog, 0 mistakes, day 20 |
+| adequate | farm hog, 4 mistakes, day 16 | farm hog, 4 mistakes, day 16 |
+| sloppy | runt, 6 mistakes, day 14, lowest health 22 | runt, 6 mistakes, day 14, lowest health 19 |
+
+All six die of old age. One knob moved to get there — sloppy's `rescueBelow`
+went from 10 to 35 during tuning, because at 10 the pig died in childhood rather
+than surviving to the branch as a runt. Nothing in `kCarePlans` needed tuning for
+the second speed once the press budget was expressed in simulated time.
 
 That is narrower than it might read. The deciding count sloppy actually
 produces is 6 — the floor of the runt band, one above `kFarmHogMaxMistakes` —
 not the ceiling. `kRuntWorstMistakes` (8) is exercised by no test in this
 repo; `test/dev/life_cycle_run_test.dart` says so directly, and asserts only
-that the count falls somewhere inside the runt band. The measured ceiling of
-8, cited in Part 1 as the practical limit on what a childhood can survive,
-came from two throwaway policies run at design time and hand-tuned to convert
-health into mistakes as efficiently as possible — not from the bot, and not
-under test. What the harness demonstrates is that a pig can survive 6
-mistakes and become a runt; it does not demonstrate that 8 is survivable, only
-that a hand-optimized probe reached it once, outside the harness, before any
-of this was built.
+that the count falls somewhere inside the runt band.
+
+And the ceiling of 8 cited in Part 1 is softer than it was written. It came from
+two throwaway policies run at design time and hand-tuned to convert health into
+mistakes as efficiently as possible — not from the bot, and not under test. A
+later independent re-measurement, with three different hand-optimized policies
+across 60+ parameter combinations, topped out at **7** and never reached 8.
+Different policies, so that does not make 8 wrong; it does mean the top of the
+runt band is marginal and possibly unreachable by play. The constant stays at 8:
+moving it would narrow the runt band below three wide, and the evidence says
+"marginal", not "wrong". What is demonstrated is 6.
 
 ---
 

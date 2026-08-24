@@ -44,7 +44,7 @@ Routes:
 | `/` | The device itself, on the real `SystemClock`. |
 | `/dev` | The dev menu — links to everything below. |
 | `/dev/device` | The same device widget as `/`, mounted on a `FakeClock` with speed and jump controls, for watching the long arcs by hand. |
-| `/dev/life` | A bot plays a whole life unattended at 600x-10800x, at one of three care qualities. The only way to see an entire life cycle. |
+| `/dev/life` | A bot plays a whole life unattended at 600x or 3600x, at one of three care qualities, with the truffle hunt on a switch (default off — it changes which adult you get). The only way to see an entire life cycle. |
 | `/dev/preview` | Drives the real composer from a pet you can poke at. Start here for sprite work. |
 | `/dev/sprites` | Every sprite animating at 600ms, with pause and step |
 | `/dev/editor` | 32×16 grid editor that emits paste-ready Dart |
@@ -57,14 +57,14 @@ scaffolding and is not reachable from the device itself.
 ```bash
 cd packages/hog_sim && dart test        # 120 — the simulation
 cd packages/hog_sim && dart test -p chrome   # 115 — same suite under dart2js
-flutter test                            # 244 — renderer, sprites, composer, the M4 input machine, the life cycle harness
+flutter test                            # 261 — renderer, sprites, composer, the M4 input machine, the life cycle harness
 cd functions && npm test                # 14  — the JS bridge conformance
 ```
 
 All four must pass, with one standing exception: `flutter test` carries one
 known failure, `every sprite in the cast is well formed` on `prop.grave` —
 Dave's grave redraw is mid-flight and not yet the declared size. Expect
-244 passes and that one failure until it lands; anything else red is a
+261 passes and that one failure until it lands; anything else red is a
 real regression. The `-p chrome` run is not optional — see
 [Determinism](#determinism-the-thing-most-likely-to-bite-you).
 
@@ -157,11 +157,16 @@ the mistake bands scaled 1.5× to 5 / 14 / 38.
 
 **The mistake bands are 2 / 5 / 8, not the spec's 3 / 9 / 25 or the 5 / 14 / 38
 they were first scaled to.** A care mistake costs 18 health and health returns
-at 0.2 a tick, so an 864-tick childhood affords about eight of them. The old
+at 0.2 a tick, so an 864-tick childhood affords single digits of them. The old
 bands put the entire runt range past the point where the pig was already dead —
 two different deliberate-neglect policies, swept across twenty parameter
-combinations, all topped out at 8 mistakes. `life-cycle-harness-design.md` has
-the measurement. `/dev/life` is what keeps the new bands honest.
+combinations, topped out at 8 mistakes. How firm is that 8? Less firm than it
+reads: an independent re-measurement with three other hand-optimized policies
+across 60+ combinations topped out at 7, and `/dev/life`'s own sloppy preset
+demonstrates 6. So the top of the runt band is marginal and may be unreachable
+by play — it stays at 8 because moving it would take the band below three wide.
+`life-cycle-harness-design.md` has the measurement. `/dev/life` is what keeps
+the new bands honest.
 
 **Front-facing outlined art, not the spec's side view.** Dave drew a
 front-facing outlined pig and it is much better: a pig in profile has no face to
