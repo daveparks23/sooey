@@ -17,46 +17,15 @@ typedef LifeResult = ({
   double lowestHealth,
 });
 
-/// Recovers the exact `stageCareMistakes` that decided [pet]'s adult form,
-/// from the lifespan the branch stamped onto `expiresAtMillis`.
-///
-/// Reading `pet.careMistakes` right after the transition looks like the
-/// obvious way to get this, but it is only exact at one-tick granularity.
-/// At 3600x, one `controller.tick()` call advances ~7.2 simulated ticks
-/// (`kAnimFrameMillis * 3600 / kTickMillis`), and `needZeroSinceTick` is not
-/// reset by a stage change — so a need still at zero when the branch fires
-/// can tick over another mistake in the same frame, *after* the branch,
-/// inflating the cumulative `careMistakes` this test would otherwise read.
-///
-/// `expiresAtMillis`, by contrast, is stamped once at the branch tick and
-/// never touched again, and `lifespanMinutes` is strictly monotonic in the
-/// mistake count within a form's band. So the deciding count is recovered
-/// exactly by scanning that band for the one value whose `expiresAtForAdult`
-/// reproduces the pig's actual `expiresAtMillis` — independent of how many
-/// ticks a single frame happened to advance.
-int decidingMistakes(PetState pet) {
-  final (lo, hi) = switch (pet.form) {
-    Form.prizeHog => (0, kPrizeHogMaxMistakes),
-    Form.farmHog => (kPrizeHogMaxMistakes + 1, kFarmHogMaxMistakes),
-    Form.runt => (kFarmHogMaxMistakes + 1, kRuntWorstMistakes),
-    Form.base => throw ArgumentError('base is not an adult form'),
-  };
-  for (var m = lo; m <= hi; m++) {
-    if (expiresAtForAdult(pet.bornAtMillis, pet.form, m) ==
-        pet.expiresAtMillis) {
-      return m;
-    }
-  }
-  fail(
-    'no mistake count in [$lo, $hi] reproduces this ${pet.form.name}\'s '
-    'expiresAtMillis (${pet.expiresAtMillis})',
-  );
-}
-
-/// Runs a whole life headlessly, exactly as the page will drive it.
+/// Runs a whole life headlessly, exactly as the page drives it.
 ///
 /// No widgets: a controller, a fake clock and the bot. 3600x means one frame
-/// is 36 simulated minutes, so a twenty-day life is about 800 frames.
+/// is 36 simulated minutes, so a twenty-day life is about 800 frames — and at
+/// 600x a frame is 6 minutes, so the same life is about 4,800.
+///
+/// The press budget comes from `botPressBudget(speed)`, which is what the page
+/// uses too: presses per frame have to scale with how much simulated time a
+/// frame covers, or the same preset raises a different adult at each speed.
 LifeResult runLife(CarePreset preset, {int speed = 3600}) {
   final clock = FakeClock(kRefNoon);
   final controller = GameController(clock: clock, utcOffsetMinutes: 0);
@@ -64,9 +33,14 @@ LifeResult runLife(CarePreset preset, {int speed = 3600}) {
   // irreproducible. Treats buy the same enrichment deterministically.
   final bot = CareBot(preset, playsHunt: false);
 
+  final budget = botPressBudget(speed);
   var lowestHealth = 100.0;
 
-  for (var frame = 0; frame < 5000; frame++) {
+  // A twenty-day life is 28,800 simulated minutes; the loop bound has to cover
+  // that at the slowest speed the page offers, with room to spare.
+  final maxFrames = 20 * 24 * 60 * 60000 ~/ (kAnimFrameMillis * speed) + 500;
+
+  for (var frame = 0; frame < maxFrames; frame++) {
     clock.advance(kAnimFrameMillis * speed);
     controller.tick();
 
@@ -85,13 +59,13 @@ LifeResult runLife(CarePreset preset, {int speed = 3600}) {
       );
     }
 
-    for (var i = 0; i < kBotPressBudget; i++) {
+    for (var i = 0; i < budget; i++) {
       final button = bot.nextPress(controller);
       if (button == null) break;
       controller.press(button);
     }
   }
-  fail('the pig outlived 5000 frames without dying');
+  fail('the pig outlived $maxFrames frames at ${speed}x without dying');
 }
 
 void main() {
@@ -106,10 +80,15 @@ void main() {
 
   test('adequate care raises a farm hog', () {
     final life = runLife(CarePreset.adequate);
-    expect(life.reachedAdult, isTrue,
-        reason: 'a preset that kills its pig is not a care quality');
-    expect(life.mistakesAtBranch,
-        inInclusiveRange(kPrizeHogMaxMistakes + 1, kFarmHogMaxMistakes));
+    expect(
+      life.reachedAdult,
+      isTrue,
+      reason: 'a preset that kills its pig is not a care quality',
+    );
+    expect(
+      life.mistakesAtBranch,
+      inInclusiveRange(kPrizeHogMaxMistakes + 1, kFarmHogMaxMistakes),
+    );
     expect(life.form, Form.farmHog);
     expect(life.deathCause, DeathCause.oldAge);
     expect(life.ageAtDeathDays, inInclusiveRange(15, 17));
@@ -121,7 +100,9 @@ void main() {
   // What this test demonstrates is that sloppy care survives childhood and
   // produces a runt with the intended near-death signature — it does not
   // demonstrate that the runt band's ceiling is reachable or survivable.
-  // No test in this file exercises kRuntWorstMistakes.
+  // No test in this file exercises kRuntWorstMistakes, and an independent
+  // re-measurement with hand-optimized neglect policies topped out at 7, so
+  // treat 8 as marginal rather than as a demonstrated ceiling.
   test('sloppy care raises a runt that nearly did not make it', () {
     final life = runLife(CarePreset.sloppy);
     expect(life.reachedAdult, isTrue);
@@ -130,7 +111,47 @@ void main() {
     expect(life.form, Form.runt);
     expect(life.deathCause, DeathCause.oldAge);
     expect(life.ageAtDeathDays, inInclusiveRange(12, 14));
-    expect(life.lowestHealth, lessThan(40),
-        reason: 'a runt is a pig that nearly died in childhood');
+    expect(
+      life.lowestHealth,
+      lessThan(40),
+      reason: 'a runt is a pig that nearly died in childhood',
+    );
+  });
+
+  // The three tests above run at the page's default speed. These run every
+  // preset at every speed the page actually offers, because the whole promise
+  // of the harness is that the chip you pick to watch at cannot change the
+  // animal you get. It could, before `botPressBudget` scaled the press budget
+  // with simulated time: at 600x the sloppy preset produced a farm hog and at
+  // 10800x it starved the pig in childhood.
+  group('every preset raises its advertised adult at every page speed', () {
+    const advertised = {
+      CarePreset.attentive: Form.prizeHog,
+      CarePreset.adequate: Form.farmHog,
+      CarePreset.sloppy: Form.runt,
+    };
+    // Kept in step with `_speeds` in lib/dev/life_cycle_page.dart by hand:
+    // it is private, and a dev page should not export its chip list.
+    const pageSpeeds = [600, 3600];
+
+    for (final speed in pageSpeeds) {
+      for (final MapEntry(key: preset, value: form) in advertised.entries) {
+        test('${preset.name} at ${speed}x', () {
+          final life = runLife(preset, speed: speed);
+          expect(
+            life.reachedAdult,
+            isTrue,
+            reason: 'a preset that kills its pig is not a care quality',
+          );
+          expect(life.form, form);
+          expect(
+            formForMistakes(life.mistakesAtBranch),
+            form,
+            reason: 'the deciding count has to sit in the form it produced',
+          );
+          expect(life.deathCause, DeathCause.oldAge);
+        });
+      }
+    }
   });
 }

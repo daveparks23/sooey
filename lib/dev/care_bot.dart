@@ -7,16 +7,41 @@ import '../game/screens/device_screen.dart';
 import '../game/screens/feed_menu.dart';
 import '../game/screens/home_screen.dart';
 import '../game/screens/truffle_hunt.dart';
+import '../sprites/sprite_registry.dart' show kAnimFrameMillis;
 
-/// How many presses the bot may make in one animation frame.
+/// Simulated minutes the bot allows itself per button press.
 ///
 /// A frame is 600ms of wall clock. At 3600x that is 36 simulated minutes, in
 /// which a piglet loses about 3 fullness and 3 comfort — and feeding is a
-/// four-press sequence: cursor to feed, B, cursor to slop, B. At one press a
-/// frame the bot spends every frame navigating and still falls behind. Six is
-/// far fewer than a human could manage in 36 simulated minutes, so nothing it
-/// achieves here is out of a player's reach.
-const int kBotPressBudget = 6;
+/// four-press sequence: cursor to feed, B, cursor to slop, B. Held to a single
+/// press per frame there, the bot would spend nearly every frame navigating
+/// and still fall behind. Six presses per 36 simulated minutes is far fewer
+/// than a human could manage in the same window, so nothing the bot achieves
+/// here is out of a player's reach.
+///
+/// One press per six simulated minutes is exactly that cadence, written in the
+/// units that matter.
+const int kBotMinutesPerPress = 6;
+
+/// How many presses the bot may make in one animation frame at [speed].
+///
+/// A flat presses-per-frame budget was wrong: a frame is a fixed slice of wall
+/// clock but a *variable* slice of simulated time, while care demand is per
+/// simulated tick. So a flat budget made the bot's care throughput scale
+/// inversely with the speed chip, and the same preset produced different
+/// adults at different speeds — a farm hog at 600x where 3600x gave a runt,
+/// and a pig starved on day one at 10800x.
+///
+/// Scaling the budget with simulated time per frame holds the cadence of
+/// [kBotMinutesPerPress] constant: 1 press a frame at 600x, 6 at 3600x (which
+/// is what the old flat constant gave, so that speed is unchanged), 18 at
+/// 10800x. The floor of one press keeps a slow speed from starving the bot
+/// entirely.
+int botPressBudget(int speed) {
+  final minutesPerFrame = kAnimFrameMillis * speed / 60000;
+  final presses = (minutesPerFrame / kBotMinutesPerPress).round();
+  return presses < 1 ? 1 : presses;
+}
 
 /// One thing the bot is trying to get done.
 ///
@@ -50,12 +75,20 @@ Button? pressToward(BotGoal goal, DeviceScreen screen) {
     return screen.selected == iconFor(goal) ? Button.b : Button.a;
   }
   if (screen is FeedMenu) {
+    // Only a feed goal belongs here. B on any other goal would confirm a menu
+    // this goal never opened and feed the pig slop by accident, so back out
+    // and let the next frame navigate to the icon it actually wants.
+    if (goal != BotGoal.slop && goal != BotGoal.treat) return Button.c;
     return screen.treat == (goal == BotGoal.treat) ? Button.b : Button.a;
   }
   if (screen is TruffleHunt) {
     // A guess while the pig is still at a mound resolves a round nobody has
     // seen the answer to, and the screen ignores it anyway.
-    return screen.revealing ? null : Button.a;
+    if (screen.revealing) return null;
+    // The hunt has no exit: B is ignored and both A and C are guesses, so the
+    // only way off this screen is to play the five rounds out. C on a goal
+    // that is not play says plainly that the bot did not mean to be here.
+    return goal == BotGoal.play ? Button.a : Button.c;
   }
 
   // Anything else — stats, or a screen added after this was written — is
@@ -114,7 +147,8 @@ BotGoal? chooseGoal(
       // is near the floor. A treat buys enrichment in a single visit instead.
       final last = pet.lastPlayedAtMillis;
       final cooling = last != null && nowMillis - last < kPlayCooldownMillis;
-      final slack = pet.fullness > kServiceBelow &&
+      final slack =
+          pet.fullness > kServiceBelow &&
           pet.comfort > kServiceBelow &&
           pet.cleanliness > kServiceBelow;
       return playsHunt && slack && !cooling ? BotGoal.play : BotGoal.treat;
@@ -124,8 +158,7 @@ BotGoal? chooseGoal(
   // the nights visible as they go past.
   final localHour =
       ((nowMillis + pet.utcOffsetMinutes * 60000) ~/ 3600000) % 24;
-  final darkOutside =
-      localHour >= kSleepStartHour || localHour < kSleepEndHour;
+  final darkOutside = localHour >= kSleepStartHour || localHour < kSleepEndHour;
   if (darkOutside && pet.lightsOn) return BotGoal.lightOff;
   if (!darkOutside && !pet.lightsOn) return BotGoal.lightOn;
   return null;
@@ -154,15 +187,25 @@ class CarePlan {
 }
 
 const Map<CarePreset, CarePlan> kCarePlans = {
-  CarePreset.attentive:
-      CarePlan(targetMistakes: 0, rescueBelow: 100, resumeAbove: 100),
-  CarePreset.adequate:
-      CarePlan(targetMistakes: 4, rescueBelow: 45, resumeAbove: 60),
+  CarePreset.attentive: CarePlan(
+    targetMistakes: 0,
+    rescueBelow: 100,
+    resumeAbove: 100,
+  ),
+  CarePreset.adequate: CarePlan(
+    targetMistakes: 4,
+    rescueBelow: 45,
+    resumeAbove: 60,
+  ),
   // targetMistakes: 7 is a ceiling this childhood never reaches — the
-  // rescue at health 35 calls the lapse off first. The full-life test
-  // (test/dev/life_cycle_run_test.dart) measures the realized count at 6.
-  CarePreset.sloppy:
-      CarePlan(targetMistakes: 7, rescueBelow: 35, resumeAbove: 60),
+  // rescue at health 35 calls the lapse off first. The full-life tests
+  // (test/dev/life_cycle_run_test.dart) measure the realized count at 6, at
+  // both speeds the page offers.
+  CarePreset.sloppy: CarePlan(
+    targetMistakes: 7,
+    rescueBelow: 35,
+    resumeAbove: 60,
+  ),
 };
 
 /// The two needs a lapse is allowed to bottom out.
@@ -223,8 +266,50 @@ class CareBot {
       playsHunt: playsHunt,
     );
     // Nothing to do: rest on home, and back out of anywhere else so the next
-    // frame starts from a known screen.
-    if (goal == null) return screen is HomeScreen ? null : Button.c;
+    // frame starts from a known screen. The hunt is the one screen with no
+    // way out — a press during a reveal is swallowed, so wait it out rather
+    // than spending the frame's whole budget on presses that do nothing.
+    if (goal == null) {
+      if (screen is HomeScreen) return null;
+      if (screen is TruffleHunt && screen.revealing) return null;
+      return Button.c;
+    }
     return pressToward(goal, screen);
   }
+}
+
+/// Recovers the exact `stageCareMistakes` that decided [pet]'s adult form,
+/// from the lifespan the branch stamped onto `expiresAtMillis`.
+///
+/// Reading `pet.careMistakes` right after the transition looks like the
+/// obvious way to get this, but it is only exact at one-tick granularity.
+/// At 3600x, one `controller.tick()` call advances ~7.2 simulated ticks
+/// (`kAnimFrameMillis * 3600 / kTickMillis`), and `needZeroSinceTick` is not
+/// reset by a stage change — so a need still at zero when the branch fires
+/// can tick over another mistake in the same frame, *after* the branch,
+/// inflating the cumulative `careMistakes` a caller would otherwise read.
+///
+/// `expiresAtMillis`, by contrast, is stamped once at the branch tick and
+/// never touched again, and `lifespanMinutes` is strictly monotonic in the
+/// mistake count within a form's band. So the deciding count is recovered
+/// exactly by scanning that band for the one value whose `expiresAtForAdult`
+/// reproduces the pig's actual `expiresAtMillis` — independent of how many
+/// ticks a single frame happened to advance.
+int decidingMistakes(PetState pet) {
+  final (lo, hi) = switch (pet.form) {
+    Form.prizeHog => (0, kPrizeHogMaxMistakes),
+    Form.farmHog => (kPrizeHogMaxMistakes + 1, kFarmHogMaxMistakes),
+    Form.runt => (kFarmHogMaxMistakes + 1, kRuntWorstMistakes),
+    Form.base => throw ArgumentError('base is not an adult form'),
+  };
+  for (var m = lo; m <= hi; m++) {
+    if (expiresAtForAdult(pet.bornAtMillis, pet.form, m) ==
+        pet.expiresAtMillis) {
+      return m;
+    }
+  }
+  throw StateError(
+    'no mistake count in [$lo, $hi] reproduces this ${pet.form.name}\'s '
+    'expiresAtMillis (${pet.expiresAtMillis})',
+  );
 }
