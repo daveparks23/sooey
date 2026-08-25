@@ -1,0 +1,418 @@
+# The life cycle harness — design
+
+A dev-only harness that plays a pig from egg to grave, unattended, on the real
+device, so a whole life cycle can be watched in minutes. Read
+[`HANDOFF.md`](HANDOFF.md) first; this assumes it.
+
+It comes with a balance change, because measurement during design showed that
+one of the three adults cannot currently be reached by play at all.
+
+**Scope:** one new dev route, one care bot, and a four-line rescale of the
+mistake bands. No milestone work — nothing here is reachable from `/`, and M5
+and M6 are untouched.
+
+**Accept:** from `/dev/life`, pick a care quality, press start, walk away, and
+come back to a grave — having produced a prize hog, a farm hog or a runt on
+purpose, with a log of what happened on the way.
+
+---
+
+## The four decisions this hangs on
+
+Asked and answered before any of it was designed.
+
+**Watched live on the device, not reported.** The alternative was a headless run
+that emits a timeline and a contact sheet of frames. Rejected: the point is to
+see the pig live, and a report cannot show that the device survived a life.
+
+**Fully unattended.** The bot picks the crest and tends the pig for the entire
+run. No takeover, no scrubbing, no jump-to-event. Press start and watch. A
+repeatable run is worth more than an interactive one, and taking the buttons
+back mid-life is a different feature.
+
+The truffle hunt is the one part of that the page puts on a switch, default
+**off** — see [The truffle hunt is a knob, not scenery](#the-truffle-hunt-is-a-knob-not-scenery).
+
+**Three care qualities, one knob.** Attentive, adequate and sloppy, producing
+the three adults. The form is decided purely by care-mistake count at the
+piglet→adult branch, so one number — how many mistakes the bot intends to make
+during childhood — covers all three.
+
+**The bot presses real buttons.** It navigates the icon strip with A, confirms
+with B and backs out with C, through `GameController.press`, exactly as a player
+would. The alternative — applying actions straight to the pet — is simpler but
+leaves the device idling on the home screen with needs silently refilling, and
+puts none of the M4 input machine under test. A full life is 5,760 ticks and well over a
+thousand presses through the real screen stack, which is a far harder exercise
+of that machine than any unit test.
+
+---
+
+## Part 1 — the runt is unreachable, and the bands have to move
+
+### What was measured
+
+Two throwaway policies were run headlessly against `hog_sim`, driving a pig from
+egg to the piglet→adult branch and trying to accumulate as many care mistakes as
+possible without killing it.
+
+The first converts health into mistakes as fast as it can: neglect every need,
+rescue the pig at a health floor, recover to a ceiling, repeat. Swept across
+floors of 12/20/30/45 and ceilings of 70/90, its best result was **8 mistakes**.
+
+The second plays optimally *for mistakes*: it zeroes only fullness and
+enrichment — the two needs that can be topped up in small steps — holds comfort
+and cleanliness above the recovery threshold so health can regenerate at all,
+and restores to 56 rather than overshooting, so the next drain is as short as
+possible. Swept across floors of 4/8/15/25 and ceilings of 60/80/100, its best
+result was also **8 mistakes**. Nothing in twenty parameter combinations reached
+nine.
+
+Attentive care, as a baseline, produces 0 mistakes and health that never leaves
+100.
+
+Treat that 8 as the high-water mark of the probes rather than a demonstrated
+ceiling. A later independent re-measurement, with three different hand-optimized
+policies across 60+ parameter combinations, topped out at 7; the harness's own
+sloppy preset reaches 6. See
+[What the harness actually demonstrated](#what-the-harness-actually-demonstrated).
+
+### Why the ceiling is where it is
+
+A care mistake costs 18 health: `kTicksAtZeroForMistake` (12) ticks with a need
+at zero, at `kHealthLossPerZeroedNeed` (1.5) per tick. Health only comes back at
+`kHealthRecovery` (0.2) per tick, and only while all four needs are above 50 and
+the pig is not sick.
+
+A childhood is `kPigletMinutes / kTickMinutes` = 864 ticks. So the entire health
+budget available to spend on mistakes is `100 + 0.2 × 864` = 272.8, which is
+**15.2 mistakes even if recovery ran on every single tick of childhood** — and
+it cannot, because driving a need to zero means spending ticks below 50, where
+nothing recovers. Fifteen is therefore an unreachable arithmetic ceiling, not
+merely a hard target. The practical one is somewhere in single digits: the
+probes above reached 7-8 and nothing since has beaten 7.
+
+The runt band begins at `kFarmHogMaxMistakes + 1` = 15. It cannot be entered by
+a pig that survives its childhood. `kRuntWorstMistakes` = 38, the count at which
+the runt's lifespan bottoms out, would require 684 health.
+
+The reachable range is 0–8 against bands cut at 5 and 14. Prize hog is almost
+everything, farm hog is a sliver reachable only by deliberate cruelty, and the
+top of the farm band together with the whole runt band is dead space.
+
+### The change
+
+In [`constants.dart`](packages/hog_sim/lib/src/constants.dart), whose own header
+calls these balance knobs:
+
+| | now | becomes |
+| --- | --- | --- |
+| `kPrizeHogMaxMistakes` | 5 | **2** |
+| `kFarmHogMaxMistakes` | 14 | **5** |
+| `kRuntWorstMistakes` | 38 | **8** |
+
+Which maps the range that exists onto the three forms: prize hog at 0–2, farm
+hog at 3–5, runt at 6–8. Lifespan bands are untouched, and every band stays at
+least three wide so `lifespanMinutes` keeps interpolating across a real range
+rather than dividing by zero.
+
+Nothing else changes. The health economy, the decay rates and the definition of
+a mistake all stay exactly as they are — this is the smallest change that makes
+all three adults reachable, and it is reversible by editing three numbers back.
+
+What it means at the table: a pig whose needs never bottom out is a prize hog. A
+pig that spends three to five hours of its childhood with something at zero is a
+farm hog. A runt is a pig that spent six or more hours at zero and nearly died
+doing it — which is what a runt should be.
+
+### What it breaks
+
+`stages_test.dart`, `advance_test.dart` and `golden_scenarios.dart` all
+reference the bands symbolically, so they follow the new values without edits.
+Two things need attention:
+
+- `transition/keeps-lifetime-mistakes` in `golden_scenarios.dart` passes a
+  literal `stageCareMistakes: 4`, which was a prize hog and becomes a farm hog.
+  The case is about lifetime mistakes surviving the branch, so its intent is
+  unaffected — but the literal should become symbolic so it cannot silently
+  change meaning again.
+- `packages/hog_sim/test/golden/vectors.json` must be regenerated with
+  `dart run tool/emit_golden_vectors.dart`. Expect a diff in the transition
+  cases and in every `expiresAtMillis` downstream of them. This is a deliberate
+  regeneration: the simulation's observable behaviour has changed on purpose.
+
+Both `dart test` and `dart test -p chrome` must pass afterwards, and
+`cd functions && npm test` replays the new vectors through dart2js.
+
+---
+
+## Part 2 — the harness
+
+### Shape
+
+Two new files and one route. Nothing under [`lib/game/`](lib/game/) or
+`packages/hog_sim/` changes for the harness itself — the bot is a player, and if
+it needed the game to change in order to play, that would be a bug in the game
+worth knowing about.
+
+```
+lib/dev/care_bot.dart         decides one press at a time
+lib/dev/life_cycle_page.dart  route /dev/life: preset picker, run, readout
+```
+
+[`/dev/device`](lib/dev/device_dev_page.dart) is left exactly as it is for
+hand-driving. The new page reuses the same `FakeClock` + `GameController` +
+`DeviceShell` assembly.
+
+### The bot
+
+One method:
+
+```dart
+Button? nextPress(GameController controller);
+```
+
+Null means nothing to do this frame. The page calls it in a short loop, feeding
+each answer straight back into `press()`, so every decision sees the screen the
+previous press produced rather than a stale one.
+
+It recognises where it is by switching on `controller.screen`:
+
+| Screen | What it does |
+| --- | --- |
+| `CrestScreen` | B, taking the first crest. The crest is cosmetic and picking one is not what we came to watch. |
+| `HomeScreen` | A until `litIcon` is the icon it wants, then B. |
+| `FeedMenu` | A if `treat` is not the choice it wants, then B — but C on any goal that is not slop or a treat, because B here feeds the pig and a goal that never opened this menu must not confirm it. |
+| `TruffleHunt` | A whenever `revealing` is false — one guess per round, five rounds. C on any other goal: the hunt has no exit (B is ignored, both A and C are guesses), so the only way off the screen is to play it out. |
+| `StatsScreen` | C. It never opens this; the case exists so an unexpected screen cannot wedge the run. |
+| `DeathScreen` | **null, always.** B there is `Restart` and would erase the life just watched. |
+
+Everything it reads is already public — `litIcon`, `FeedMenu.treat`,
+`TruffleHunt.revealing`, `pet.isSick`, `pet.poops`. No new accessors, and the
+screens stay unaware they are being driven.
+
+It carries one field of memory: the icon it is currently heading for, held until
+the action lands or is refused. Without it, a need going urgent mid-navigation
+would leave a menu half-open and the bot would thrash between goals.
+
+### The care policy
+
+Each frame the bot picks a goal from the pet, in priority order: medicate if
+`isSick` (never otherwise — medicating a healthy pig costs 5 health), clean if
+there are poops or cleanliness is low, then whichever serviceable need is
+lowest. Fullness is slop, comfort is wallow, enrichment is the truffle hunt.
+It also toggles the pen light off at 22:00 local and on at 07:00, which costs
+nothing and makes the nights visible.
+
+Care quality is one number: the mistakes the preset intends to make during
+childhood.
+
+| Preset | Intended mistakes | Expected adult |
+| --- | --- | --- |
+| attentive | 0 | prize hog |
+| adequate | 4 | farm hog |
+| sloppy | 7 | runt |
+
+A preset makes its mistakes **early and all at once**, then cares perfectly for
+the rest of childhood. While it is making them it stops servicing every need and
+lets them all bottom out together, rescuing the pig whenever health falls to a
+floor — 45 for adequate, which never looks dangerous, and 35 for sloppy, which
+does. Once the intended count is reached it reverts to attentive care and the
+pig recovers for whatever childhood is left.
+
+That shape is not an aesthetic choice. Spacing single-need lapses evenly across
+childhood was the obvious design and it does not work: each fresh need has to
+drain from full before it can register anything, which costs 178 ticks for
+comfort and 320 for enrichment, so a rotating policy stalls at **3 mistakes** in
+864 ticks no matter how many lapses it is asked for. That was measured, and it
+is why the presets neglect everything at once — mistakes cost the same 18 health
+whether one need is at zero or four, so zeroing four earns them four times
+faster and leaves far more of the childhood free for health to recover in.
+
+The intended counts are a starting point, not a promise. The preset test below
+is what makes them true. `targetMistakes: 7` for sloppy is inert — the rescue at
+health 35 calls the lapse off first — and the count the preset actually realizes
+is 6, at both speeds the page offers.
+
+### The truffle hunt is a knob, not scenery
+
+The hunt returns up to 25 enrichment in one visit against a treat's 10, so a run
+that plays it re-drains for far longer, fits fewer lapse cycles into childhood,
+and lands short of the mistakes the preset came for. Measured at 3600× with
+everything else equal, sloppy care produces a **farm hog** with the hunt on and a
+**runt** with it off.
+
+So the hunt is a setting, on the panel, labelled as changing the outcome, and
+**default off** — which is what the full-life tests pin, so what ships is what
+the tests measured. Switching it starts a new pig, exactly as changing the preset
+does: a childhood played half under each setting belongs to neither.
+
+It is a switch rather than a deletion because watching the pig play is half the
+reason there is a device to watch, and because the hunt draws from `dart:math`'s
+`Random` — a run that plays it is not reproducible, which is a fine thing to
+watch and a poor thing to assert on.
+
+### Driving the run
+
+The page mounts `DeviceShell` on a `FakeClock` and steps it on the existing
+600ms animation frame, exactly as `/dev/device` does. Two differences.
+
+**The bot gets one press per six simulated minutes.** At 3600× a frame is 7.2
+ticks, in which a piglet loses about 3 fullness and 3 comfort, and feeding alone
+is a four-press sequence. Held to a single press per frame at that speed, the
+bot would spend nearly every frame navigating and still fall behind. Six presses
+per frame at 3600× is not cheating: 600ms at 3600× is 36 simulated minutes, so
+six presses in that window is far slower than a human at 1×.
+
+The budget is `botPressBudget(speed)` rather than a flat presses-per-frame
+constant, because a frame is a fixed slice of *wall* clock and a variable slice
+of *simulated* time, while care demand is per simulated tick. A flat budget made
+the bot's care throughput scale inversely with the speed chip, and the same
+preset then produced a different adult at each speed — measured, sloppy gave a
+farm hog at 600×, a runt at 3600×, and a pig starved on day 1.3 at 10800×.
+Scaling with simulated time holds the cadence constant: 1 press a frame at 600×,
+6 at 3600× (unchanged), with a floor of one press so a slow speed cannot starve
+the bot.
+
+**Speeds are 600× and 3600×.** 3600× puts a full life at about eight minutes, of
+which roughly seven are an adult pig that changes very little. 1× and 60× are
+dropped — a life at 60× is eight hours and nobody is watching that.
+
+10800× was offered and has been **removed**. Even with the press budget scaled it
+produced a farm hog from the sloppy preset where both remaining speeds produce a
+runt: a frame there is 21.6 simulated ticks, which is far too coarse for the
+35/60 rescue hysteresis the sloppy plan runs on — the bot cannot see the floor it
+meant to stop at, overshoots, and the lapse ends somewhere other than where the
+plan said. A speed chip that silently changes which animal you get is worse than
+a slower run. Restoring it means decoupling the bot's press cadence from the
+animation frame, so it can act between simulated ticks — a frame would advance
+the clock in tick-sized steps and offer the bot its budget across them, rather
+than jumping two hours and then pressing eighteen times.
+
+The run stops on death. The death screen comes up on its own through the
+existing controller path, the bot goes quiet, and the summary stays on screen.
+
+### The start phase matters for sloppy care
+
+Pinning the clock to `kRefNoon` rather than seeding it from `DateTime.now()` is
+not only for reproducible tests. A review found that which adult sloppy care
+produces depends on what time of day the run starts, because both the bot's
+sleep/light toggle and the sloppy preset's 35/60 rescue hysteresis key off the
+pig's local hour. A sweep of quarter-hour start instants across a full day, hunt
+off, found attentive and adequate unaffected — 0/96 wrong at both 600× and 3600× —
+but sloppy wrong at 31/96 starts at 600× and 24/96 at 3600×, with the 3600× bad
+window running essentially contiguous from 17:15 to 23:30 UTC. Pinning the page to
+19:00 UTC and changing nothing else was enough to turn the committed `sloppy care
+raises a runt` test red. Noon UTC sits well clear of that window at both speeds —
+the nearest bad start found by re-sweeping after the pin is about an hour away at
+600× and over five hours away at 3600× — so it is what the page and every test now
+start from.
+
+Pinning makes runs reproducible; it does not make the bot robust. The same time of
+day still governs the outcome, and nothing here changed the rescue hysteresis
+itself — only which instant every caller starts the clock at. Anyone who moves
+`rescueBelow`, `resumeAbove`, or the sleep/light hours should re-run the sweep
+before trusting that noon still lands in sloppy's good window; the bad window is
+not guaranteed to stay where it is once those numbers move.
+
+### The readout
+
+In the panel below the glass, never on the LCD — [`death_screen.dart`](lib/game/screens/death_screen.dart)
+is deliberate about never showing judgment, and spec §8 forbids a post-mortem
+scoreboard on the device. The panel is not the device.
+
+Live: stage, form, age, the four needs, health, mistakes, and whether the bot is
+currently in a lapse. Plus an event log — hatched, became adult *with the
+mistake count that decided it*, each sickness, died of what at what age — which
+is what makes a run reviewable after the fact rather than something you had to
+be watching.
+
+One trap: the branch zeroes `stageCareMistakes` on the same tick it fixes the
+form, so a panel reading that field will always show 0 at the moment it matters.
+It has to read `careMistakes`, which survives the transition and is equal to it
+at that point, because the egg stage does not decay and therefore contributes no
+mistakes.
+
+### Testing
+
+Unit tests for the bot, driving a `GameController` on a `FakeClock` with no
+widgets: it reaches slop from a parked cursor, guesses five times in the hunt,
+medicates only when sick, backs out of an unexpected screen, and returns null on
+the death screen rather than restarting.
+
+Then the one that matters — a full-life test per preset, headless: build
+controller and bot, run the whole childhood, and assert the pig reaches
+adulthood as the intended form with its mistake count inside the intended band,
+then keep going to confirm it dies of old age inside its form's lifespan band. A
+full life is 5,760 ticks of pure arithmetic and something over a thousand
+presses, so it runs in well under a second. That test is what keeps the presets honest after any
+balance change, and it is the reason the rescale in Part 1 can be trusted
+rather than assumed.
+
+Every preset runs at **every speed the page offers**, not just the default. The
+speed chip is supposed to be a viewing control, and the only way to keep it one
+is to assert it. The same goes for the page itself: a widget test per preset
+drives `/dev/life` through a whole life and reads the adult back out of the event
+log, because the harness's promise is about what the *page* does, and the page
+was for a while constructing a different bot from the one the headless tests
+pinned. Those three page tests cost about five seconds.
+
+Reading the deciding mistake count is shared code, not duplicated: `careMistakes`
+is only exact at one-tick granularity, and a frame at 3600× is 7.2 ticks, so a
+need still at zero when the branch fires can add another mistake *after* it,
+inside the same frame. `decidingMistakes` in `care_bot.dart` recovers the exact
+count from the `expiresAtMillis` the branch stamped, and the page and the tests
+both call it.
+
+`flutter test` carries one standing unrelated failure on `prop.grave`; see
+`HANDOFF.md`.
+
+### What the harness actually demonstrated
+
+Six lives, one per preset per speed, headless and on the page alike:
+
+| preset | 600× | 3600× |
+| --- | --- | --- |
+| attentive | prize hog, 0 mistakes, day 20 | prize hog, 0 mistakes, day 20 |
+| adequate | farm hog, 4 mistakes, day 16 | farm hog, 4 mistakes, day 16 |
+| sloppy | runt, 6 mistakes, day 14, lowest health 22 | runt, 6 mistakes, day 14, lowest health 19 |
+
+All six die of old age. One knob moved to get there — sloppy's `rescueBelow`
+went from 10 to 35 during tuning, because at 10 the pig died in childhood rather
+than surviving to the branch as a runt. Nothing in `kCarePlans` needed tuning for
+the second speed once the press budget was expressed in simulated time.
+
+That is narrower than it might read. The deciding count sloppy actually
+produces is 6 — the floor of the runt band, one above `kFarmHogMaxMistakes` —
+not the ceiling. `kRuntWorstMistakes` (8) is exercised by no test in this
+repo; `test/dev/life_cycle_run_test.dart` says so directly, and asserts only
+that the count falls somewhere inside the runt band.
+
+And the ceiling of 8 cited in Part 1 is softer than it was written. It came from
+two throwaway policies run at design time and hand-tuned to convert health into
+mistakes as efficiently as possible — not from the bot, and not under test. A
+later independent re-measurement, with three different hand-optimized policies
+across 60+ parameter combinations, topped out at **7** and never reached 8.
+Different policies, so that does not make 8 wrong; it does mean the top of the
+runt band is marginal and possibly unreachable by play. The constant stays at 8:
+moving it would narrow the runt band below three wide, and the evidence says
+"marginal", not "wrong". What is demonstrated is 6.
+
+---
+
+## Out of scope
+
+**No M6 work.** No hatch beat, no growing-up beat, no tombstone polish, no new
+sprites. The arc is already legible without them — an egg, then a piglet, then
+an adult whose skull width tells you which one you earned, then the grave — and
+mixing presentation work into this would make the harness's findings harder to
+trust.
+
+**No persistence, no seeking, no takeover.** M5 owns the real debug clock and
+will likely replace the fake one under this page; that is a later edit, not a
+constraint on this one.
+
+**No new balance work beyond the three constants.** The measurement turned up
+one broken thing and this fixes exactly that. Whether a mistake should cost less
+health, or whether judgment should weigh something other than mistakes, are
+design questions this harness now makes it possible to ask properly.

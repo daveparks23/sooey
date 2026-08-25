@@ -1,5 +1,5 @@
 name: sooey
-description: "A new Flutter project."
+description: "Hog Pocket — a virtual pig on a simulated dot-matrix LCD."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -30,6 +30,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+
+  # The tick simulation. Pure Dart, shared verbatim with the Cloud Functions
+  # server (which runs it via dart2js), so the optimistic UI and the authority
+  # cannot drift. See packages/hog_sim/README.md.
+  hog_sim:
+    path: packages/hog_sim
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -2,8 +2,11 @@
   "name": "functions",
   "scripts": {
     "lint": "eslint --ext .js,.ts .",
-    "build": "tsc",
+    "build:sim": "bash scripts/build-sim.sh",
+    "build": "npm run build:sim && tsc",
     "build:watch": "tsc --watch",
+    "test": "npm run build && node --test 'test/*.test.mjs'",
+    "test:only": "node --test 'test/*.test.mjs'",
     "serve": "npm run build && firebase emulators:start --only functions",
     "shell": "npm run build && firebase functions:shell",
     "start": "npm run shell",

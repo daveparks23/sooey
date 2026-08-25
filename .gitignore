@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Library packages under packages/ resolve against the app lockfile.
+packages/*/pubspec.lock
+
+# Local screenshot scratch
+.sprite-review-*.png
